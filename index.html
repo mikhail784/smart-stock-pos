@@ -2,7 +2,7 @@
 <html lang="id">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>PosKu - Smart POS & Live Barcode Scanner</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -12,14 +12,14 @@
     <script src="https://unpkg.com/html5-qrcode"></script>
     <!-- HTML2Canvas Library for Receipt-to-Image Export -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-
     <!-- JsBarcode Library for Barcode Generation -->
     <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.5/dist/JsBarcode.all.min.js"></script>
 
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap');
         body {
             font-family: 'Plus Jakarta Sans', sans-serif;
+            touch-action: manipulation;
         }
         /* Custom scrollbar */
         ::-webkit-scrollbar {
@@ -39,6 +39,24 @@
         #reader video {
             object-fit: cover !important;
             border-radius: 0.75rem;
+            width: 100% !important;
+        }
+
+        /* Live Camera Laser Scanner Beam Animation */
+        @keyframes scanBeam {
+            0% { top: 10%; opacity: 0.8; }
+            50% { top: 85%; opacity: 1; }
+            100% { top: 10%; opacity: 0.8; }
+        }
+        .scan-laser-line {
+            position: absolute;
+            left: 5%;
+            width: 90%;
+            height: 3px;
+            background: linear-gradient(90deg, transparent, #3b82f6, #10b981, #3b82f6, transparent);
+            box-shadow: 0 0 12px #10b981, 0 0 6px #3b82f6;
+            animation: scanBeam 2s ease-in-out infinite;
+            z-index: 10;
         }
 
         /* Print Styles for Barcode Sticker Labels */
@@ -64,7 +82,7 @@
         }
     </style>
 </head>
-<body class="bg-slate-100 text-slate-800 antialiased min-h-screen flex flex-col md:flex-row">
+<body class="bg-slate-100 text-slate-800 antialiased min-h-screen flex flex-col md:flex-row overflow-x-hidden">
 
     <!-- Sidebar Navigation -->
     <aside class="w-full md:w-64 bg-slate-900 text-white flex-shrink-0 flex flex-col justify-between border-r border-slate-800 shadow-lg">
@@ -105,11 +123,11 @@
 
         <!-- Camera Scanner Quick Trigger in Sidebar -->
         <div class="p-4 border-t border-slate-800 space-y-2">
-            <button onclick="openLiveCameraScanner('reduce_stock')" class="w-full bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white py-2.5 px-4 rounded-xl font-semibold text-sm shadow-lg shadow-emerald-900/40 flex items-center justify-center space-x-2 transition-all">
+            <button onclick="openLiveCameraScanner('reduce_stock')" class="w-full bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white py-2.5 px-4 rounded-xl font-semibold text-sm shadow-lg shadow-emerald-900/40 flex items-center justify-center space-x-2 transition-all active:scale-95">
                 <i class="fa-solid fa-camera"></i>
-                <span>Scan Kurangi Stok</span>
+                <span>Scan Kamera HP (Kasir)</span>
             </button>
-            <button onclick="openLiveCameraScanner('add_product')" class="w-full bg-slate-800 hover:bg-slate-700 text-slate-300 py-2 px-4 rounded-xl font-medium text-xs flex items-center justify-center space-x-2 transition-all">
+            <button onclick="openLiveCameraScanner('add_product')" class="w-full bg-slate-800 hover:bg-slate-700 text-slate-300 py-2 px-4 rounded-xl font-medium text-xs flex items-center justify-center space-x-2 transition-all active:scale-95">
                 <i class="fa-solid fa-barcode"></i>
                 <span>Scan Tambah Produk</span>
             </button>
@@ -134,19 +152,19 @@
                     </div>
                 </div>
 
-                <!-- Live Camera Scan Quick Trigger -->
-                <div class="bg-indigo-900 text-white rounded-2xl p-4 flex items-center justify-between shadow-md">
+                <!-- Live Camera Scan Banner Quick Trigger -->
+                <div class="bg-gradient-to-r from-indigo-900 via-indigo-800 to-slate-900 text-white rounded-2xl p-4 flex items-center justify-between shadow-md border border-indigo-700/50">
                     <div class="flex items-center space-x-3">
-                        <div class="w-10 h-10 rounded-xl bg-indigo-500/30 flex items-center justify-center text-indigo-300 text-xl">
-                            <i class="fa-solid fa-qrcode"></i>
+                        <div class="w-12 h-12 rounded-xl bg-indigo-500/30 border border-indigo-400/40 flex items-center justify-center text-indigo-300 text-2xl shrink-0">
+                            <i class="fa-solid fa-qrcode animate-pulse"></i>
                         </div>
                         <div>
-                            <h2 class="font-semibold text-sm">Pindai Barcode Kamera Live</h2>
-                            <p class="text-xs text-indigo-200">Arahkan barcode barang ke kamera untuk input cepat</p>
+                            <h2 class="font-bold text-sm text-white">Scan Barcode Live Kamera HP</h2>
+                            <p class="text-xs text-indigo-200">Arahkan kamera HP ke barang untuk tambah cepat ke keranjang</p>
                         </div>
                     </div>
-                    <button onclick="openLiveCameraScanner('reduce_stock')" class="bg-indigo-500 hover:bg-indigo-400 text-white px-4 py-2 rounded-xl text-xs font-semibold flex items-center space-x-2 transition-all">
-                        <i class="fa-solid fa-camera"></i>
+                    <button onclick="openLiveCameraScanner('reduce_stock')" class="bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold px-4 py-2.5 rounded-xl text-xs flex items-center space-x-2 transition-all shadow-md active:scale-95 shrink-0">
+                        <i class="fa-solid fa-camera text-sm"></i>
                         <span>Buka Kamera</span>
                     </button>
                 </div>
@@ -213,7 +231,7 @@
                         </label>
                     </div>
 
-                    <button onclick="processCheckout()" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white py-3 rounded-xl font-bold text-sm shadow-lg shadow-indigo-600/30 flex items-center justify-center space-x-2 transition-all">
+                    <button onclick="processCheckout()" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white py-3 rounded-xl font-bold text-sm shadow-lg shadow-indigo-600/30 flex items-center justify-center space-x-2 transition-all active:scale-98">
                         <i class="fa-solid fa-check-circle"></i>
                         <span>Bayar & Cetak Struk</span>
                     </button>
@@ -379,30 +397,42 @@
 
     </main>
 
-    <!-- MODAL 1: LIVE CAMERA BARCODE SCANNER -->
-    <div id="cameraModal" class="fixed inset-0 bg-slate-900/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
-        <div class="bg-white rounded-2xl max-w-md w-full p-5 shadow-2xl space-y-4">
-            <div class="flex justify-between items-center border-b pb-3">
+    <!-- MODAL 1: LIVE CAMERA BARCODE SCANNER HP -->
+    <div id="cameraModal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-md z-50 flex items-center justify-center p-3 hidden">
+        <div class="bg-white rounded-3xl max-w-md w-full p-5 shadow-2xl space-y-4 border border-slate-100">
+            <div class="flex justify-between items-center border-b border-slate-100 pb-3">
                 <div class="flex items-center space-x-2">
-                    <div class="w-3 h-3 rounded-full bg-rose-500 animate-ping"></div>
-                    <h3 class="font-bold text-slate-900 text-base" id="cameraModalTitle">Pindai Barcode Kamera</h3>
+                    <div class="w-3 h-3 rounded-full bg-emerald-500 animate-ping"></div>
+                    <h3 class="font-bold text-slate-900 text-base" id="cameraModalTitle">Pindai Barcode Kamera HP</h3>
                 </div>
-                <button onclick="closeCameraModal()" class="w-8 h-8 text-slate-400 hover:text-slate-600 rounded-lg flex items-center justify-center">
+                <button onclick="closeCameraModal()" class="w-8 h-8 text-slate-400 hover:text-slate-600 rounded-xl flex items-center justify-center bg-slate-100 hover:bg-slate-200">
                     <i class="fa-solid fa-xmark text-lg"></i>
                 </button>
             </div>
 
-            <p class="text-xs text-slate-500" id="cameraModalSubtitle">Arahkan kamera ke kode barcode / QR pada produk.</p>
+            <p class="text-xs text-slate-500" id="cameraModalSubtitle">Arahkan kamera HP ke kode barcode / QR pada produk.</p>
 
-            <!-- Video Camera Viewport -->
-            <div class="relative bg-black rounded-xl overflow-hidden min-h-[260px] flex items-center justify-center">
+            <!-- Video Camera Viewport Container -->
+            <div class="relative bg-black rounded-2xl overflow-hidden min-h-[280px] flex items-center justify-center border-2 border-slate-800 shadow-inner">
+                <!-- Laser Line Effect -->
+                <div class="scan-laser-line"></div>
+                <!-- Camera Feed Container -->
                 <div id="reader" class="w-full"></div>
+            </div>
+
+            <!-- Camera Switch Controls for HP -->
+            <div class="flex items-center justify-between bg-slate-50 p-2.5 rounded-xl border border-slate-200 text-xs">
+                <span class="text-slate-600 font-semibold" id="cameraStatusText">Kamera Aktif</span>
+                <button onclick="switchCameraFacing()" class="bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-bold px-3 py-1.5 rounded-lg flex items-center space-x-1.5 transition-all">
+                    <i class="fa-solid fa-camera-rotate"></i>
+                    <span>Ganti Kamera HP</span>
+                </button>
             </div>
 
             <!-- Manual Barcode Input Fallback -->
             <div class="pt-2 border-t border-slate-100 flex gap-2">
                 <input type="text" id="manualBarcodeScan" placeholder="Atau ketik barcode manual..." class="flex-1 px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:ring-2 focus:ring-indigo-500 outline-none">
-                <button onclick="submitManualBarcode()" class="bg-slate-800 hover:bg-slate-700 text-white px-3 py-2 rounded-xl text-xs font-semibold">
+                <button onclick="submitManualBarcode()" class="bg-slate-900 hover:bg-slate-800 text-white px-3.5 py-2 rounded-xl text-xs font-semibold">
                     Submit
                 </button>
             </div>
@@ -426,9 +456,9 @@
                     <label class="block text-xs font-semibold text-slate-600 mb-1">Kode Barcode</label>
                     <div class="flex gap-2">
                         <input type="text" id="prodBarcode" required class="flex-1 px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:ring-2 focus:ring-indigo-500 outline-none">
-                        <button type="button" onclick="scanBarcodeForForm()" class="bg-indigo-50 text-indigo-600 border border-indigo-200 px-3 py-2 rounded-xl text-xs font-semibold flex items-center space-x-1 hover:bg-indigo-100">
+                        <button type="button" onclick="openLiveCameraScanner('form_input')" class="bg-indigo-50 text-indigo-600 border border-indigo-200 px-3 py-2 rounded-xl text-xs font-semibold flex items-center space-x-1 hover:bg-indigo-100">
                             <i class="fa-solid fa-camera"></i>
-                            <span>Scan</span>
+                            <span>Scan Kamera</span>
                         </button>
                     </div>
                 </div>
@@ -711,9 +741,14 @@
         let transactions = JSON.parse(localStorage.getItem('posku_transactions')) || [];
         let cart = [];
         let activeCategory = 'Semua';
-        let html5QrcodeScanner = null;
-        let cameraScanMode = 'reduce_stock'; // 'reduce_stock' or 'add_product' or 'form_input'
-        let currentReceiptData = null;
+        
+        // Live Camera HP State
+        let html5Qrcode = null;
+        let currentFacingMode = "environment"; // "environment" for back camera HP, "user" for front
+        let cameraScanMode = 'reduce_stock'; // 'reduce_stock', 'add_product', or 'form_input'
+        let lastScannedCode = null;
+        let lastScanTime = 0;
+        let barcodePrintMode = 'bulk'; // 'bulk' or 'single'
 
         // Initialize Application
         window.addEventListener('DOMContentLoaded', () => {
@@ -723,6 +758,14 @@
             renderStockTable();
             renderTransactions();
         });
+
+        function saveProductsToStorage() {
+            localStorage.setItem('posku_products', JSON.stringify(products));
+        }
+
+        function saveTransactionsToStorage() {
+            localStorage.setItem('posku_transactions', JSON.stringify(transactions));
+        }
 
         // Play Beep Sound on Barcode Scan
         function playBeep() {
@@ -734,9 +777,9 @@
                 gain.connect(ctx.destination);
                 osc.type = 'sine';
                 osc.frequency.setValueAtTime(987.77, ctx.currentTime);
-                gain.gain.setValueAtTime(0.15, ctx.currentTime);
+                gain.gain.setValueAtTime(0.2, ctx.currentTime);
                 osc.start();
-                osc.stop(ctx.currentTime + 0.12);
+                osc.stop(ctx.currentTime + 0.15);
             } catch (e) {}
         }
 
@@ -770,11 +813,149 @@
             document.getElementById(`tab-${tabId}`).classList.add('bg-slate-800', 'text-white');
         }
 
-        // --- SECTION 1: PROFIL PERUSAHAAN LOGIC ---
+        // --- LIVE CAMERA HP SCANNER ENGINE ---
+        function openLiveCameraScanner(mode = 'reduce_stock') {
+            cameraScanMode = mode;
+            const modal = document.getElementById('cameraModal');
+            modal.classList.remove('hidden');
+
+            const titleEl = document.getElementById('cameraModalTitle');
+            const subEl = document.getElementById('cameraModalSubtitle');
+
+            if (mode === 'reduce_stock') {
+                titleEl.innerText = "Scan Barang Kamera HP (Kasir)";
+                subEl.innerText = "Arahkan kamera ke barcode barang untuk memasukkan ke keranjang";
+            } else if (mode === 'add_product') {
+                titleEl.innerText = "Scan Kamera Tambah Produk";
+                subEl.innerText = "Pindai barcode untuk menambah stok (+1) atau mendaftarkan barang baru";
+            } else if (mode === 'form_input') {
+                titleEl.innerText = "Scan Form Input Barcode";
+                subEl.innerText = "Pindai barcode untuk mengisi otomatis kolom formulir barang";
+            }
+
+            startCameraScanner();
+        }
+
+        function startCameraScanner() {
+            if (html5Qrcode) {
+                try {
+                    html5Qrcode.stop().then(() => {
+                        initHtml5Qrcode();
+                    }).catch(() => {
+                        initHtml5Qrcode();
+                    });
+                    return;
+                } catch(e) {}
+            }
+            initHtml5Qrcode();
+        }
+
+        function initHtml5Qrcode() {
+            html5Qrcode = new Html5Qrcode("reader");
+            const config = { 
+                fps: 15, 
+                qrbox: { width: 250, height: 180 },
+                aspectRatio: 1.0,
+                experimentalFeatures: {
+                    useBarCodeDetectorIfSupported: true
+                }
+            };
+
+            const statusText = document.getElementById('cameraStatusText');
+            statusText.innerText = currentFacingMode === 'environment' ? 'Kamera Belakang Aktif' : 'Kamera Depan Aktif';
+
+            html5Qrcode.start(
+                { facingMode: currentFacingMode },
+                config,
+                onScanSuccess,
+                onScanError
+            ).catch(err => {
+                console.warn("Camera start failed for mode:", currentFacingMode, err);
+                // Fallback attempt
+                if (currentFacingMode === "environment") {
+                    html5Qrcode.start({ facingMode: "user" }, config, onScanSuccess, onScanError)
+                        .catch(e => showToast("Gagal membuka kamera HP. Pastikan izin kamera diberikan.", "error"));
+                } else {
+                    showToast("Gagal mengakses kamera. Silakan periksa izin browser.", "error");
+                }
+            });
+        }
+
+        function switchCameraFacing() {
+            currentFacingMode = (currentFacingMode === "environment") ? "user" : "environment";
+            startCameraScanner();
+        }
+
+        function closeCameraModal() {
+            if (html5Qrcode) {
+                try {
+                    html5Qrcode.stop().then(() => {
+                        document.getElementById('cameraModal').classList.add('hidden');
+                    }).catch(() => {
+                        document.getElementById('cameraModal').classList.add('hidden');
+                    });
+                } catch(e) {
+                    document.getElementById('cameraModal').classList.add('hidden');
+                }
+            } else {
+                document.getElementById('cameraModal').classList.add('hidden');
+            }
+        }
+
+        function onScanError(errorMessage) {
+            // Ignore frame scan errors
+        }
+
+        function onScanSuccess(decodedText, decodedResult) {
+            const now = Date.now();
+            // Debounce duplicate scans within 1.5 seconds
+            if (decodedText === lastScannedCode && (now - lastScanTime) < 1500) {
+                return;
+            }
+            lastScannedCode = decodedText;
+            lastScanTime = now;
+
+            playBeep();
+
+            if (cameraScanMode === 'reduce_stock') {
+                const product = products.find(p => p.barcode === decodedText);
+                if (product) {
+                    addToCart(product.id);
+                    showToast(`Ter-scan: ${product.name}`);
+                } else {
+                    showToast(`Produk dengan barcode ${decodedText} tidak ditemukan!`, 'error');
+                }
+            } else if (cameraScanMode === 'add_product') {
+                const product = products.find(p => p.barcode === decodedText);
+                if (product) {
+                    product.stock += 1;
+                    saveProductsToStorage();
+                    renderStockTable();
+                    renderKasirProducts();
+                    showToast(`Stok ${product.name} bertambah (+1) menjadi ${product.stock}`);
+                } else {
+                    showToast(`Produk baru terdeteksi! Membuka form pendaftaran...`, 'info');
+                    closeCameraModal();
+                    openProductModalWithBarcode(decodedText);
+                }
+            } else if (cameraScanMode === 'form_input') {
+                document.getElementById('prodBarcode').value = decodedText;
+                showToast(`Barcode ${decodedText} berhasil dimasukkan!`);
+                closeCameraModal();
+            }
+        }
+
+        function submitManualBarcode() {
+            const val = document.getElementById('manualBarcodeScan').value.trim();
+            if (!val) return;
+            onScanSuccess(val, null);
+            document.getElementById('manualBarcodeScan').value = '';
+        }
+
+        // --- PROFIL PERUSAHAAN LOGIC ---
         function initCompanyProfile() {
             document.getElementById('navCompanyName').innerText = companyProfile.name;
             
-            // Populate Form Fields
             document.getElementById('profName').value = companyProfile.name;
             document.getElementById('profTagline').value = companyProfile.tagline || '';
             document.getElementById('profPhone').value = companyProfile.phone || '';
@@ -783,7 +964,6 @@
             document.getElementById('profLogo').value = companyProfile.logoUrl || '';
             document.getElementById('profQrCode').value = companyProfile.qrisUrl || '';
 
-            // Update Previews
             document.getElementById('previewQrImage').src = companyProfile.qrisUrl || 'https://via.placeholder.com/200?text=No+QRIS';
             document.getElementById('prevHeaderName').innerText = companyProfile.name;
             document.getElementById('prevHeaderTagline').innerText = companyProfile.tagline;
@@ -808,7 +988,7 @@
             showToast('Profil Perusahaan Berhasil Diperbarui!');
         }
 
-        // --- SECTION 2: KASIR & PRODUK LOGIC ---
+        // --- KASIR & PENJUALAN LOGIC ---
         function renderCategoryFilters() {
             const categories = ['Semua', ...new Set(products.map(p => p.category))];
             const container = document.getElementById('categoryFilterContainer');
@@ -841,7 +1021,7 @@
             }
 
             grid.innerHTML = filtered.map(p => `
-                <div onclick="addToCart('${p.id}')" class="bg-white rounded-2xl border border-slate-200 overflow-hidden hover:border-indigo-500 hover:shadow-md transition-all cursor-pointer flex flex-col justify-between group">
+                <div onclick="addToCart('${p.id}')" class="bg-white rounded-2xl border border-slate-200 overflow-hidden hover:border-indigo-500 hover:shadow-md transition-all cursor-pointer flex flex-col justify-between group active:scale-98">
                     <div class="p-3">
                         <div class="w-full h-24 rounded-xl bg-slate-100 overflow-hidden mb-2">
                             <img src="${p.image || 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=200'}" class="w-full h-full object-cover group-hover:scale-105 transition-transform" onerror="this.src='https://via.placeholder.com/150?text=Produk'">
@@ -860,7 +1040,6 @@
             `).join('');
         }
 
-        // Cart Operations
         function addToCart(productId) {
             const product = products.find(p => p.id === productId);
             if (!product) return;
@@ -881,7 +1060,6 @@
                 cart.push({ ...product, qty: 1 });
             }
 
-            playBeep();
             renderCart();
         }
 
@@ -894,7 +1072,7 @@
             item.qty += delta;
             if (item.qty > product.stock) {
                 item.qty = product.stock;
-                showToast('Mencapai batas stok tersedia', 'info');
+                showToast('Mencapai batas stok tersedia!', 'info');
             }
 
             if (item.qty <= 0) {
@@ -910,40 +1088,36 @@
         }
 
         function renderCart() {
-            const list = document.getElementById('cartItemsList');
+            const container = document.getElementById('cartItemsList');
             const subtotalEl = document.getElementById('cartSubtotal');
             const totalEl = document.getElementById('cartTotal');
 
             if (cart.length === 0) {
-                list.innerHTML = `
-                    <div class="h-full flex flex-col items-center justify-center text-center text-slate-400 p-6">
-                        <i class="fa-solid fa-cart-flatbed text-3xl mb-2 text-slate-300"></i>
+                container.innerHTML = `
+                    <div class="text-center py-12 text-slate-400 space-y-2">
+                        <i class="fa-solid fa-basket-shopping text-3xl opacity-40"></i>
                         <p class="text-xs">Keranjang belanja kosong</p>
-                        <p class="text-[10px] text-slate-400 mt-1">Pilih produk atau scan barcode</p>
                     </div>
                 `;
-                subtotalEl.innerText = 'Rp 0';
-                totalEl.innerText = 'Rp 0';
+                subtotalEl.innerText = "Rp 0";
+                totalEl.innerText = "Rp 0";
                 return;
             }
 
             let subtotal = 0;
-            list.innerHTML = cart.map(item => {
+            container.innerHTML = cart.map(item => {
                 const itemTotal = item.price * item.qty;
                 subtotal += itemTotal;
                 return `
                     <div class="flex items-center justify-between p-2.5 bg-slate-50 border border-slate-200 rounded-xl">
                         <div class="flex-1 pr-2">
                             <h4 class="font-bold text-slate-800 text-xs line-clamp-1">${item.name}</h4>
-                            <p class="text-[10px] text-slate-500">Rp ${item.price.toLocaleString('id-ID')} x ${item.qty}</p>
+                            <span class="text-[10px] text-slate-500">Rp ${item.price.toLocaleString('id-ID')} x ${item.qty}</span>
                         </div>
-                        <div class="flex items-center space-x-2">
-                            <div class="flex items-center border border-slate-300 rounded-lg bg-white overflow-hidden">
-                                <button onclick="updateCartQty('${item.id}', -1)" class="px-2 py-0.5 text-xs text-slate-600 hover:bg-slate-100 font-bold">-</button>
-                                <span class="px-2 text-xs font-bold text-slate-800">${item.qty}</span>
-                                <button onclick="updateCartQty('${item.id}', 1)" class="px-2 py-0.5 text-xs text-slate-600 hover:bg-slate-100 font-bold">+</button>
-                            </div>
-                            <span class="font-bold text-xs text-slate-900 w-16 text-right">Rp ${itemTotal.toLocaleString('id-ID')}</span>
+                        <div class="flex items-center space-x-1.5">
+                            <button onclick="updateCartQty('${item.id}', -1)" class="w-6 h-6 rounded-lg bg-white border border-slate-300 text-slate-600 font-bold text-xs flex items-center justify-center hover:bg-slate-100">-</button>
+                            <span class="text-xs font-bold w-5 text-center">${item.qty}</span>
+                            <button onclick="updateCartQty('${item.id}', 1)" class="w-6 h-6 rounded-lg bg-white border border-slate-300 text-slate-600 font-bold text-xs flex items-center justify-center hover:bg-slate-100">+</button>
                         </div>
                     </div>
                 `;
@@ -953,142 +1127,121 @@
             totalEl.innerText = `Rp ${subtotal.toLocaleString('id-ID')}`;
         }
 
-        // Process Transaction Checkout
+        // Checkout Process & Receipt
         function processCheckout() {
             if (cart.length === 0) {
                 showToast('Keranjang belanja masih kosong!', 'error');
                 return;
             }
 
-            const paymentMethod = document.querySelector('input[name="paymentMethod"]:checked').value;
-            const total = cart.reduce((sum, item) => sum + (item.price * item.qty), 0);
+            const method = document.querySelector('input[name="paymentMethod"]:checked').value;
+            const total = cart.reduce((acc, item) => acc + (item.price * item.qty), 0);
+            const txId = 'INV-' + Date.now().toString().slice(-6);
 
             // Deduct Stocks
             cart.forEach(item => {
-                const prod = products.find(p => p.id === item.id);
-                if (prod) {
-                    prod.stock -= item.qty;
+                const product = products.find(p => p.id === item.id);
+                if (product) {
+                    product.stock -= item.qty;
                 }
             });
+            saveProductsToStorage();
 
-            // Save Products State
-            localStorage.setItem('posku_products', JSON.stringify(products));
-
-            // Create Transaction Record
-            const transaction = {
-                id: 'TRX' + Date.now().toString().slice(-6),
+            // Record Transaction
+            const txData = {
+                id: txId,
                 date: new Date().toLocaleString('id-ID'),
+                method: method,
                 items: [...cart],
-                total: total,
-                method: paymentMethod
+                total: total
             };
+            transactions.unshift(txData);
+            saveTransactionsToStorage();
 
-            transactions.unshift(transaction);
-            localStorage.setItem('posku_transactions', JSON.stringify(transactions));
+            // Render Receipt Modal
+            renderReceipt(txData);
 
-            // Refresh Tables
+            // Reset
+            cart = [];
+            renderCart();
             renderKasirProducts();
             renderStockTable();
             renderTransactions();
 
-            // Clear Cart & Open Receipt
-            const receiptCart = [...cart];
-            clearCart();
-            showReceiptModal(transaction);
             showToast('Transaksi Berhasil Selesai!');
         }
 
-        // --- SECTION 3: LIVE CAMERA BARCODE SCANNER LOGIC ---
-        function openLiveCameraScanner(mode) {
-            cameraScanMode = mode;
-            const modalTitle = document.getElementById('cameraModalTitle');
-            const modalSub = document.getElementById('cameraModalSubtitle');
+        function renderReceipt(tx) {
+            document.getElementById('rcpCompName').innerText = companyProfile.name;
+            document.getElementById('rcpTagline').innerText = companyProfile.tagline || '';
+            document.getElementById('rcpAddress').innerText = companyProfile.address || '';
+            document.getElementById('rcpPhone').innerText = companyProfile.phone ? "Telp: " + companyProfile.phone : '';
+            document.getElementById('rcpFooterMsg').innerText = companyProfile.footerMsg || 'Terima kasih atas kunjungan Anda!';
 
-            if (mode === 'reduce_stock') {
-                modalTitle.innerText = "Scan Kurangi Stok / Penjualan";
-                modalSub.innerText = "Setiap barcode terdeteksi akan otomatis menambah 1 item ke keranjang belanja.";
-            } else if (mode === 'add_product') {
-                modalTitle.innerText = "Scan Tambah / Cek Produk";
-                modalSub.innerText = "Pindai barcode untuk mengecek atau mendaftarkan produk baru.";
+            if (companyProfile.logoUrl) {
+                const logoImg = document.getElementById('rcpLogo');
+                logoImg.src = companyProfile.logoUrl;
+                logoImg.classList.remove('hidden');
             }
 
-            showModal('cameraModal');
+            document.getElementById('rcpTxId').innerText = tx.id;
+            document.getElementById('rcpDate').innerText = tx.date;
+            document.getElementById('rcpMethod').innerText = tx.method;
+            document.getElementById('rcpTotalAmount').innerText = `Rp ${tx.total.toLocaleString('id-ID')}`;
 
-            setTimeout(() => {
-                if (!html5QrcodeScanner) {
-                    html5QrcodeScanner = new Html5Qrcode("reader");
-                }
+            const itemsContainer = document.getElementById('rcpItemsList');
+            itemsContainer.innerHTML = tx.items.map(i => `
+                <div class="flex justify-between items-start text-[11px]">
+                    <div class="flex-1">
+                        <p class="font-bold text-slate-800">${i.name}</p>
+                        <p class="text-slate-500">${i.qty} x Rp ${i.price.toLocaleString('id-ID')}</p>
+                    </div>
+                    <span class="font-bold text-slate-800">Rp ${(i.qty * i.price).toLocaleString('id-ID')}</span>
+                </div>
+            `).join('');
 
-                html5QrcodeScanner.start(
-                    { facingMode: "environment" },
-                    { fps: 10, qrbox: { width: 250, height: 250 } },
-                    onScanSuccess,
-                    onScanError
-                ).catch(err => {
-                    showToast('Gagal memuat kamera: ' + err, 'error');
-                });
-            }, 300);
-        }
-
-        function closeCameraModal() {
-            if (html5QrcodeScanner && html5QrcodeScanner.isScanning) {
-                html5QrcodeScanner.stop().then(() => {
-                    closeModal('cameraModal');
-                }).catch(err => closeModal('cameraModal'));
+            const qrSection = document.getElementById('rcpQrSection');
+            if (tx.method.includes('QR') && companyProfile.qrisUrl) {
+                document.getElementById('rcpQrImage').src = companyProfile.qrisUrl;
+                qrSection.classList.remove('hidden');
             } else {
-                closeModal('cameraModal');
+                qrSection.classList.add('hidden');
             }
+
+            document.getElementById('receiptModal').classList.remove('hidden');
         }
 
-        function onScanSuccess(decodedText) {
-            playBeep();
-            handleBarcodeScanned(decodedText);
+        function downloadReceiptAsImage() {
+            const area = document.getElementById('receiptRenderArea');
+            html2canvas(area, { scale: 2 }).then(canvas => {
+                const link = document.createElement('a');
+                link.download = `Struk-${Date.now()}.png`;
+                link.href = canvas.toDataURL('image/png');
+                link.click();
+                showToast('Gambar struk berhasil diunduh!');
+            });
         }
 
-        function onScanError(errorMessage) {
-            // Ignore frame error noise
+        function shareReceiptImage() {
+            const area = document.getElementById('receiptRenderArea');
+            html2canvas(area, { scale: 2 }).then(canvas => {
+                canvas.toBlob(blob => {
+                    const file = new File([blob], 'Struk-Belanja.png', { type: 'image/png' });
+                    if (navigator.share && navigator.canShare({ files: [file] })) {
+                        navigator.share({
+                            files: [file],
+                            title: 'Struk Pembayaran',
+                            text: 'Berikut adalah struk transaksi pembayaran Anda.'
+                        }).catch(() => {});
+                    } else {
+                        showToast('Fitur berbagi tidak didukung di peramban ini. Mengunduh gambar...', 'info');
+                        downloadReceiptAsImage();
+                    }
+                });
+            });
         }
 
-        function submitManualBarcode() {
-            const input = document.getElementById('manualBarcodeScan');
-            if (input.value.trim()) {
-                handleBarcodeScanned(input.value.trim());
-                input.value = '';
-            }
-        }
-
-        function handleBarcodeScanned(barcode) {
-            if (cameraScanMode === 'reduce_stock') {
-                // Find Product
-                const product = products.find(p => p.barcode === barcode);
-                if (product) {
-                    addToCart(product.id);
-                    showToast(`+1 ${product.name} dimasukkan ke keranjang`);
-                } else {
-                    showToast(`Barcode ${barcode} tidak terdaftar!`, 'error');
-                }
-            } else if (cameraScanMode === 'add_product') {
-                closeCameraModal();
-                const existingProduct = products.find(p => p.barcode === barcode);
-                if (existingProduct) {
-                    openProductModal(existingProduct);
-                    showToast(`Produk terdeteksi: ${existingProduct.name}`, 'info');
-                } else {
-                    openProductModal({ barcode: barcode });
-                    showToast(`Barcode baru ${barcode}. Silakan isi detail produk.`, 'info');
-                }
-            } else if (cameraScanMode === 'form_input') {
-                closeCameraModal();
-                document.getElementById('prodBarcode').value = barcode;
-                showToast(`Barcode ${barcode} berhasil dimasukkan`, 'success');
-            }
-        }
-
-        function scanBarcodeForForm() {
-            openLiveCameraScanner('form_input');
-        }
-
-        // --- SECTION 4: KELOLA STOK & PRODUK LOGIC ---
+        // --- MANAJEMEN STOK & PRODUK ---
         function renderStockTable() {
             const query = document.getElementById('stokSearch').value.toLowerCase();
             const tbody = document.getElementById('stockTableBody');
@@ -1102,70 +1255,73 @@
             }
 
             tbody.innerHTML = filtered.map(p => `
-                <tr class="hover:bg-slate-50 border-b border-slate-100 transition-all">
-                    <td class="py-3 px-4">
-                        <div class="flex items-center space-x-3">
-                            <img src="${p.image || 'https://via.placeholder.com/150'}" class="w-9 h-9 rounded-lg object-cover border bg-slate-100">
-                            <div>
-                                <p class="font-bold text-slate-800 text-xs">${p.name}</p>
-                                <p class="text-[10px] text-slate-400">${p.id}</p>
-                            </div>
+                <tr class="hover:bg-slate-50 transition-colors">
+                    <td class="py-3 px-4 flex items-center space-x-3">
+                        <img src="${p.image || 'https://via.placeholder.com/50'}" class="w-9 h-9 rounded-lg object-cover border">
+                        <div>
+                            <p class="font-bold text-slate-800 text-xs">${p.name}</p>
+                            <span class="text-[10px] text-slate-400">ID: #${p.id}</span>
                         </div>
                     </td>
-                    <td class="py-3 px-4 font-mono text-xs text-slate-600">${p.barcode}</td>
-                    <td class="py-3 px-4">
-                        <span class="text-[10px] font-semibold bg-slate-100 text-slate-700 px-2 py-0.5 rounded-md">${p.category}</span>
-                    </td>
+                    <td class="py-3 px-4 font-mono text-xs font-semibold text-slate-700">${p.barcode}</td>
+                    <td class="py-3 px-4"><span class="bg-slate-100 text-slate-600 px-2 py-0.5 rounded text-[10px] font-semibold">${p.category}</span></td>
                     <td class="py-3 px-4 text-right font-bold text-slate-800 text-xs">Rp ${p.price.toLocaleString('id-ID')}</td>
                     <td class="py-3 px-4 text-center">
-                        <span class="font-bold text-xs px-2.5 py-1 rounded-full ${p.stock <= 5 ? 'bg-rose-100 text-rose-700' : 'bg-emerald-100 text-emerald-700'}">
-                            ${p.stock}
-                        </span>
+                        <div class="flex items-center justify-center space-x-1.5">
+                            <button onclick="quickAdjustStock('${p.id}', -1)" class="w-6 h-6 rounded bg-slate-100 hover:bg-slate-200 font-bold text-xs">-</button>
+                            <span class="font-bold text-xs px-2 ${p.stock <= 5 ? 'text-rose-600' : 'text-slate-800'}">${p.stock}</span>
+                            <button onclick="quickAdjustStock('${p.id}', 1)" class="w-6 h-6 rounded bg-slate-100 hover:bg-slate-200 font-bold text-xs">+</button>
+                        </div>
                     </td>
                     <td class="py-3 px-4 text-center">
-                        <div class="flex items-center justify-center space-x-1">
-                            <button onclick="openBarcodePrintModal('${p.id}')" class="w-7 h-7 bg-amber-50 text-amber-600 rounded-lg hover:bg-amber-100 font-bold text-xs" title="Cetak Barcode"><i class="fa-solid fa-barcode"></i></button>
-                            <button onclick="adjustStock('${p.id}', 1)" class="w-7 h-7 bg-emerald-50 text-emerald-600 rounded-lg hover:bg-emerald-100 font-bold text-xs" title="+1 Stok">+</button>
-                            <button onclick="adjustStock('${p.id}', -1)" class="w-7 h-7 bg-rose-50 text-rose-600 rounded-lg hover:bg-rose-100 font-bold text-xs" title="-1 Stok">-</button>
-                            <button onclick='openProductModal(${JSON.stringify(p)})' class="w-7 h-7 bg-slate-100 text-slate-600 rounded-lg hover:bg-slate-200 text-xs" title="Edit"><i class="fa-solid fa-pen"></i></button>
-                            <button onclick="deleteProduct('${p.id}')" class="w-7 h-7 bg-rose-100 text-rose-600 rounded-lg hover:bg-rose-200 text-xs" title="Hapus"><i class="fa-solid fa-trash"></i></button>
-                        </div>
+                        <button onclick="editProduct('${p.id}')" class="text-indigo-600 hover:text-indigo-800 p-1 font-semibold text-xs mr-2">
+                            <i class="fa-solid fa-pen-to-square"></i> Edit
+                        </button>
+                        <button onclick="deleteProduct('${p.id}')" class="text-rose-500 hover:text-rose-700 p-1 font-semibold text-xs">
+                            <i class="fa-solid fa-trash"></i> Hapus
+                        </button>
                     </td>
                 </tr>
             `).join('');
         }
 
-        function adjustStock(productId, delta) {
-            const prod = products.find(p => p.id === productId);
-            if (prod) {
-                prod.stock = Math.max(0, prod.stock + delta);
-                localStorage.setItem('posku_products', JSON.stringify(products));
-                renderStockTable();
-                renderKasirProducts();
-                showToast(`Stok ${prod.name} diperbarui: ${prod.stock}`);
-            }
+        function quickAdjustStock(id, delta) {
+            const product = products.find(p => p.id === id);
+            if (!product) return;
+
+            product.stock += delta;
+            if (product.stock < 0) product.stock = 0;
+            saveProductsToStorage();
+            renderStockTable();
+            renderKasirProducts();
         }
 
-        function openProductModal(product = null) {
-            const title = document.getElementById('productModalTitle');
-            if (product && product.id) {
-                title.innerText = "Edit Produk";
-                document.getElementById('prodId').value = product.id;
-                document.getElementById('prodBarcode').value = product.barcode;
-                document.getElementById('prodName').value = product.name;
-                document.getElementById('prodCategory').value = product.category;
-                document.getElementById('prodStock').value = product.stock;
-                document.getElementById('prodPrice').value = product.price;
-                document.getElementById('prodImage').value = product.image || '';
-            } else {
-                title.innerText = "Tambah Produk Baru";
-                document.getElementById('productForm').reset();
-                document.getElementById('prodId').value = '';
-                if (product && product.barcode) {
-                    document.getElementById('prodBarcode').value = product.barcode;
-                }
-            }
-            showModal('productModal');
+        function openProductModal() {
+            document.getElementById('productForm').reset();
+            document.getElementById('prodId').value = '';
+            document.getElementById('productModalTitle').innerText = 'Tambah Produk Baru';
+            document.getElementById('productModal').classList.remove('hidden');
+        }
+
+        function openProductModalWithBarcode(bc) {
+            openProductModal();
+            document.getElementById('prodBarcode').value = bc;
+        }
+
+        function editProduct(id) {
+            const product = products.find(p => p.id === id);
+            if (!product) return;
+
+            document.getElementById('prodId').value = product.id;
+            document.getElementById('prodBarcode').value = product.barcode;
+            document.getElementById('prodName').value = product.name;
+            document.getElementById('prodCategory').value = product.category;
+            document.getElementById('prodStock').value = product.stock;
+            document.getElementById('prodPrice').value = product.price;
+            document.getElementById('prodImage').value = product.image || '';
+
+            document.getElementById('productModalTitle').innerText = 'Edit Produk';
+            document.getElementById('productModal').classList.remove('hidden');
         }
 
         function saveProduct(e) {
@@ -1179,461 +1335,193 @@
             const image = document.getElementById('prodImage').value.trim();
 
             if (id) {
-                // Edit existing
-                const index = products.findIndex(p => p.id === id);
-                if (index !== -1) {
-                    products[index] = { id, barcode, name, category, stock, price, image };
+                const product = products.find(p => p.id === id);
+                if (product) {
+                    product.barcode = barcode;
+                    product.name = name;
+                    product.category = category;
+                    product.stock = stock;
+                    product.price = price;
+                    product.image = image;
                 }
             } else {
-                // Add new
-                const newProd = {
-                    id: 'P' + Date.now().toString().slice(-5),
+                products.push({
+                    id: Date.now().toString(),
                     barcode, name, category, stock, price, image
-                };
-                products.push(newProd);
+                });
             }
 
-            localStorage.setItem('posku_products', JSON.stringify(products));
-            renderStockTable();
-            renderKasirProducts();
-            renderCategoryFilters();
+            saveProductsToStorage();
             closeModal('productModal');
-            showToast('Data produk berhasil disimpan!');
+            renderCategoryFilters();
+            renderKasirProducts();
+            renderStockTable();
+            showToast('Produk berhasil disimpan!');
         }
 
         function deleteProduct(id) {
-            if (confirm('Apakah Anda yakin ingin menghapus produk ini?')) {
+            if (confirm('Yakin ingin menghapus produk ini?')) {
                 products = products.filter(p => p.id !== id);
-                localStorage.setItem('posku_products', JSON.stringify(products));
-                renderStockTable();
+                saveProductsToStorage();
+                renderCategoryFilters();
                 renderKasirProducts();
-                showToast('Produk dihapus', 'info');
+                renderStockTable();
+                showToast('Produk telah dihapus.', 'info');
             }
         }
 
-        // --- SECTION 5: RIWAYAT TRANSAKSI LOGIC ---
+        // --- BARCODE LABEL MASSAL GENERATOR ---
+        function openBarcodePrintModal() {
+            const select = document.getElementById('barcodeSelectProduct');
+            select.innerHTML = products.map(p => `<option value="${p.id}">${p.name} (${p.barcode})</option>`).join('');
+
+            const catSelect = document.getElementById('barcodeBulkCategory');
+            const categories = ['Semua', ...new Set(products.map(p => p.category))];
+            catSelect.innerHTML = categories.map(c => `<option value="${c}">${c}</option>`).join('');
+
+            document.getElementById('barcodeModal').classList.remove('hidden');
+            updateBarcodePreview();
+        }
+
+        function switchBarcodePrintMode(mode) {
+            barcodePrintMode = mode;
+            const btnBulk = document.getElementById('btnBarcodeModeBulk');
+            const btnSingle = document.getElementById('btnBarcodeModeSingle');
+            const singleControls = document.getElementById('barcodeSingleControls');
+            const bulkControls = document.getElementById('barcodeBulkControls');
+
+            if (mode === 'bulk') {
+                btnBulk.className = "pb-2 text-xs font-bold border-b-2 border-indigo-600 text-indigo-600 flex items-center space-x-2";
+                btnSingle.className = "pb-2 text-xs font-bold border-b-2 border-transparent text-slate-500 hover:text-slate-800 flex items-center space-x-2";
+                bulkControls.classList.remove('hidden');
+                singleControls.classList.add('hidden');
+            } else {
+                btnSingle.className = "pb-2 text-xs font-bold border-b-2 border-indigo-600 text-indigo-600 flex items-center space-x-2";
+                btnBulk.className = "pb-2 text-xs font-bold border-b-2 border-transparent text-slate-500 hover:text-slate-800 flex items-center space-x-2";
+                singleControls.classList.remove('hidden');
+                bulkControls.classList.add('hidden');
+            }
+            updateBarcodePreview();
+        }
+
+        function updateBarcodePreview() {
+            const area = document.getElementById('printableBarcodeArea');
+            area.innerHTML = '';
+
+            let labelList = [];
+
+            if (barcodePrintMode === 'single') {
+                const prodId = document.getElementById('barcodeSelectProduct').value;
+                const qty = parseInt(document.getElementById('barcodeQty').value) || 1;
+                const showPrice = document.getElementById('barcodeShowPrice').value === 'yes';
+                const product = products.find(p => p.id === prodId);
+
+                if (product) {
+                    for (let i = 0; i < qty; i++) {
+                        labelList.push({ product, showPrice, showStore: true });
+                    }
+                }
+            } else {
+                const qtyMode = document.getElementById('barcodeBulkQtyMode').value;
+                const categoryFilter = document.getElementById('barcodeBulkCategory').value;
+                const showPrice = document.getElementById('barcodeBulkShowPrice').checked;
+                const showStore = document.getElementById('barcodeBulkShowStore').checked;
+
+                const filteredProducts = products.filter(p => categoryFilter === 'Semua' || p.category === categoryFilter);
+
+                filteredProducts.forEach(p => {
+                    let count = 1;
+                    if (qtyMode === 'sesuai_stok') count = p.stock > 0 ? p.stock : 1;
+                    for (let i = 0; i < count; i++) {
+                        labelList.push({ product: p, showPrice, showStore });
+                    }
+                });
+            }
+
+            document.getElementById('barcodeSummaryCount').innerText = `${labelList.length} Label`;
+            document.getElementById('barcodeSummaryProducts').innerText = `${new Set(labelList.map(l => l.product.id)).size} Produk`;
+
+            labelList.forEach((item, index) => {
+                const card = document.createElement('div');
+                card.className = "border border-slate-300 p-2 rounded-lg text-center bg-white shadow-2xs flex flex-col items-center justify-between min-h-[110px]";
+                
+                const svgId = `barcode-svg-${index}`;
+                card.innerHTML = `
+                    ${item.showStore ? `<span class="text-[9px] font-bold text-slate-800 uppercase tracking-tight line-clamp-1">${companyProfile.name}</span>` : ''}
+                    <span class="text-[10px] font-semibold text-slate-900 line-clamp-1 mt-0.5">${item.product.name}</span>
+                    <svg id="${svgId}" class="w-full max-h-12 my-1"></svg>
+                    ${item.showPrice ? `<span class="text-[10px] font-bold text-indigo-700">Rp ${item.product.price.toLocaleString('id-ID')}</span>` : ''}
+                `;
+                area.appendChild(card);
+
+                try {
+                    JsBarcode(`#${svgId}`, item.product.barcode, {
+                        format: "CODE128",
+                        height: 35,
+                        displayValue: true,
+                        fontSize: 9,
+                        margin: 2
+                    });
+                } catch(e) {}
+            });
+        }
+
+        function updateBarcodeGridStyle() {
+            const area = document.getElementById('printableBarcodeArea');
+            const cols = document.getElementById('barcodeGridCols').value;
+            area.className = `grid ${cols} gap-3 bg-white p-4 rounded-lg min-h-[200px]`;
+        }
+
+        function printBarcodeLabels() {
+            window.print();
+        }
+
+        function downloadSingleBarcodePNG() {
+            const area = document.getElementById('printableBarcodeArea');
+            html2canvas(area, { scale: 2 }).then(canvas => {
+                const link = document.createElement('a');
+                link.download = `Barcode-Labels-${Date.now()}.png`;
+                link.href = canvas.toDataURL('image/png');
+                link.click();
+            });
+        }
+
+        // --- RIWAYAT TRANSAKSI ---
         function renderTransactions() {
-            const list = document.getElementById('transactionList');
+            const container = document.getElementById('transactionList');
             const totalRevEl = document.getElementById('totalRevenueText');
 
-            const grandTotalRev = transactions.reduce((sum, tx) => sum + tx.total, 0);
-            totalRevEl.innerText = `Rp ${grandTotalRev.toLocaleString('id-ID')}`;
+            const totalRev = transactions.reduce((acc, t) => acc + t.total, 0);
+            totalRevEl.innerText = `Rp ${totalRev.toLocaleString('id-ID')}`;
 
             if (transactions.length === 0) {
-                list.innerHTML = `<div class="bg-white p-8 rounded-2xl text-center text-slate-400 text-xs">Belum ada riwayat transaksi</div>`;
+                container.innerHTML = `<div class="p-8 text-center bg-white rounded-2xl border border-slate-200 text-slate-400 text-xs">Belum ada riwayat transaksi</div>`;
                 return;
             }
 
-            list.innerHTML = transactions.map(tx => `
-                <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
-                    <div class="space-y-1">
+            container.innerHTML = transactions.map(tx => `
+                <div class="bg-white p-4 rounded-2xl border border-slate-200 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
+                    <div>
                         <div class="flex items-center space-x-2">
-                            <span class="font-bold text-slate-900 text-xs">#${tx.id}</span>
-                            <span class="text-[10px] bg-indigo-50 text-indigo-600 px-2 py-0.5 rounded-full font-semibold">${tx.method}</span>
+                            <span class="font-bold text-slate-900 text-sm">${tx.id}</span>
+                            <span class="text-[10px] bg-indigo-50 text-indigo-600 font-semibold px-2 py-0.5 rounded-full">${tx.method}</span>
                         </div>
-                        <p class="text-[10px] text-slate-400">${tx.date} • ${tx.items.length} Barang</p>
+                        <p class="text-xs text-slate-400 mt-0.5">${tx.date} • ${tx.items.length} Barang</p>
                     </div>
-
-                    <div class="flex items-center space-x-4 w-full sm:w-auto justify-between sm:justify-end">
-                        <span class="font-bold text-slate-900 text-sm">Rp ${tx.total.toLocaleString('id-ID')}</span>
-                        <button onclick='showReceiptModal(${JSON.stringify(tx)})' class="bg-slate-100 hover:bg-indigo-50 text-slate-700 hover:text-indigo-600 px-3 py-1.5 rounded-xl text-xs font-semibold transition-all flex items-center space-x-1">
+                    <div class="flex items-center justify-between w-full sm:w-auto gap-4">
+                        <span class="font-bold text-indigo-600 text-sm">Rp ${tx.total.toLocaleString('id-ID')}</span>
+                        <button onclick='renderReceipt(${JSON.stringify(tx)})' class="bg-slate-100 hover:bg-slate-200 text-slate-700 px-3 py-1.5 rounded-xl text-xs font-semibold flex items-center space-x-1 transition-all">
                             <i class="fa-solid fa-receipt"></i>
-                            <span>Lihat Struk</span>
+                            <span>Struk</span>
                         </button>
                     </div>
                 </div>
             `).join('');
         }
 
-        // --- SECTION 6: RECEIPT PREVIEW, CETAK GAMBAR & SHARE LOGIC ---
-        function showReceiptModal(transaction) {
-            currentReceiptData = transaction;
-
-            // Fill Company Header
-            document.getElementById('rcpCompName').innerText = companyProfile.name;
-            document.getElementById('rcpTagline').innerText = companyProfile.tagline || '';
-            document.getElementById('rcpAddress').innerText = companyProfile.address || '';
-            document.getElementById('rcpPhone').innerText = companyProfile.phone ? "Telp: " + companyProfile.phone : '';
-            
-            const logoImg = document.getElementById('rcpLogo');
-            if (companyProfile.logoUrl) {
-                logoImg.src = companyProfile.logoUrl;
-                logoImg.classList.remove('hidden');
-            } else {
-                logoImg.classList.add('hidden');
-            }
-
-            // Fill Transaction Info
-            document.getElementById('rcpTxId').innerText = "#" + transaction.id;
-            document.getElementById('rcpDate').innerText = transaction.date;
-            document.getElementById('rcpMethod').innerText = transaction.method;
-
-            // Items List
-            const itemsContainer = document.getElementById('rcpItemsList');
-            itemsContainer.innerHTML = transaction.items.map(item => `
-                <div>
-                    <p class="font-bold text-slate-800 text-[11px]">${item.name}</p>
-                    <div class="flex justify-between text-[10px] text-slate-500">
-                        <span>${item.qty} x Rp ${item.price.toLocaleString('id-ID')}</span>
-                        <span class="font-semibold text-slate-800">Rp ${(item.qty * item.price).toLocaleString('id-ID')}</span>
-                    </div>
-                </div>
-            `).join('');
-
-            document.getElementById('rcpTotalAmount').innerText = `Rp ${transaction.total.toLocaleString('id-ID')}`;
-
-            // QRIS Display if method is QRIS
-            const qrSection = document.getElementById('rcpQrSection');
-            if (transaction.method.includes('QR') && companyProfile.qrisUrl) {
-                document.getElementById('rcpQrImage').src = companyProfile.qrisUrl;
-                qrSection.classList.remove('hidden');
-            } else {
-                qrSection.classList.add('hidden');
-            }
-
-            document.getElementById('rcpFooterMsg').innerText = companyProfile.footerMsg || "Terima Kasih";
-
-            showModal('receiptModal');
-        }
-
-        // Export Receipt DOM to PNG Image Download
-        async function downloadReceiptAsImage() {
-            const receiptArea = document.getElementById('receiptRenderArea');
-            showToast('Merekam gambar struk...', 'info');
-
-            try {
-                const canvas = await html2canvas(receiptArea, {
-                    scale: 3,
-                    backgroundColor: '#ffffff'
-                });
-
-                const imageUri = canvas.toDataURL('image/png');
-                const link = document.createElement('a');
-                link.download = `Struk-${currentReceiptData ? currentReceiptData.id : 'PosKu'}.png`;
-                link.href = imageUri;
-                link.click();
-
-                showToast('Gambar Struk Berhasil Diunduh!');
-            } catch (err) {
-                showToast('Gagal memproses gambar struk', 'error');
-            }
-        }
-
-        // Direct Share Receipt Image (Web Share API / WhatsApp Fallback)
-        async function shareReceiptImage() {
-            const receiptArea = document.getElementById('receiptRenderArea');
-            showToast('Menyiapkan gambar struk...', 'info');
-
-            try {
-                const canvas = await html2canvas(receiptArea, {
-                    scale: 3,
-                    backgroundColor: '#ffffff'
-                });
-
-                canvas.toBlob(async (blob) => {
-                    if (!blob) return;
-
-                    const file = new File([blob], `Struk-${currentReceiptData.id}.png`, { type: 'image/png' });
-
-                    // Check if native Web Share API supports file sharing
-                    if (navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
-                        try {
-                            await navigator.share({
-                                title: `Struk Pembayaran - ${companyProfile.name}`,
-                                text: `Terima kasih telah berbelanja di ${companyProfile.name}! Total: Rp ${currentReceiptData.total.toLocaleString('id-ID')}`,
-                                files: [file]
-                            });
-                            showToast('Struk berhasil dibagikan!');
-                        } catch (err) {
-                            // User cancelled share
-                        }
-                    } else {
-                        // Fallback: Share via WhatsApp Text Link
-                        const summaryText = encodeURIComponent(
-                            `*STRUK PEMBAYARAN - ${companyProfile.name.toUpperCase()}*\n` +
-                            `No: #${currentReceiptData.id}\nTanggal: ${currentReceiptData.date}\n` +
-                            `Total: Rp ${currentReceiptData.total.toLocaleString('id-ID')}\n` +
-                            `Metode: ${currentReceiptData.method}\n\n` +
-                            `Terima kasih telah berbelanja!`
-                        );
-                        window.open(`https://wa.me/?text=${summaryText}`, '_blank');
-                        showToast('Membuka WhatsApp untuk mengirim pesan...', 'info');
-                    }
-                });
-            } catch (err) {
-                showToast('Gagal membagikan struk', 'error');
-            }
-        }
-
-        // Helper Modal Controllers
-        function showModal(id) {
-            document.getElementById(id).classList.remove('hidden');
-        }
-
+        // Modal Helper Functions
         function closeModal(id) {
             document.getElementById(id).classList.add('hidden');
-        }
-
-        // --- SECTION 7: BARCODE GENERATION & PRINTING LOGIC ---
-        let selectedBarcodeProduct = null;
-        let barcodePrintMode = 'bulk'; // 'bulk' or 'single'
-        let bulkSelectedProductsState = {}; // { productId: { checked: boolean, qty: number } }
-
-        function switchBarcodePrintMode(mode) {
-            barcodePrintMode = mode;
-            const btnBulk = document.getElementById('btnBarcodeModeBulk');
-            const btnSingle = document.getElementById('btnBarcodeModeSingle');
-            const ctrlBulk = document.getElementById('barcodeBulkControls');
-            const ctrlSingle = document.getElementById('barcodeSingleControls');
-
-            if (mode === 'bulk') {
-                btnBulk.className = "pb-2 text-xs font-bold border-b-2 border-indigo-600 text-indigo-600 flex items-center space-x-2";
-                btnSingle.className = "pb-2 text-xs font-bold border-b-2 border-transparent text-slate-500 hover:text-slate-800 flex items-center space-x-2";
-                ctrlBulk.classList.remove('hidden');
-                ctrlSingle.classList.add('hidden');
-            } else {
-                btnSingle.className = "pb-2 text-xs font-bold border-b-2 border-indigo-600 text-indigo-600 flex items-center space-x-2";
-                btnBulk.className = "pb-2 text-xs font-bold border-b-2 border-transparent text-slate-500 hover:text-slate-800 flex items-center space-x-2";
-                ctrlSingle.classList.remove('hidden');
-                ctrlBulk.classList.add('hidden');
-            }
-
-            updateBarcodePreview();
-        }
-
-        function openBarcodePrintModal(productId = null) {
-            const selectEl = document.getElementById('barcodeSelectProduct');
-            
-            if (products.length === 0) {
-                showToast('Tidak ada produk tersedia untuk dicetak barcode', 'error');
-                return;
-            }
-
-            // Populate Single Product Select Options
-            selectEl.innerHTML = products.map(p => `
-                <option value="${p.id}" ${productId === p.id ? 'selected' : ''}>
-                    ${p.name} (${p.barcode})
-                </option>
-            `).join('');
-
-            // Populate Bulk Category Filter Options
-            const categories = ['Semua', ...new Set(products.map(p => p.category))];
-            const catSelect = document.getElementById('barcodeBulkCategory');
-            catSelect.innerHTML = categories.map(c => `<option value="${c}">${c}</option>`).join('');
-
-            // Initialize Bulk Selection State
-            products.forEach(p => {
-                if (!bulkSelectedProductsState[p.id]) {
-                    bulkSelectedProductsState[p.id] = { checked: true, qty: p.stock || 1 };
-                }
-            });
-
-            if (productId) {
-                switchBarcodePrintMode('single');
-            } else {
-                switchBarcodePrintMode('bulk');
-            }
-
-            showModal('barcodeModal');
-        }
-
-        function toggleSelectAllBulkBarcodes(checked) {
-            products.forEach(p => {
-                if (bulkSelectedProductsState[p.id]) {
-                    bulkSelectedProductsState[p.id].checked = checked;
-                }
-            });
-            renderBulkCustomTable();
-            updateBarcodePreview();
-        }
-
-        function updateBulkProductQtyState(pId, qty) {
-            if (bulkSelectedProductsState[pId]) {
-                bulkSelectedProductsState[pId].qty = Math.max(1, parseInt(qty) || 1);
-            }
-            updateBarcodePreview();
-        }
-
-        function toggleBulkProductCheckState(pId, checked) {
-            if (bulkSelectedProductsState[pId]) {
-                bulkSelectedProductsState[pId].checked = checked;
-            }
-            updateBarcodePreview();
-        }
-
-        function renderBulkCustomTable() {
-            const tbody = document.getElementById('barcodeBulkTableBody');
-            const category = document.getElementById('barcodeBulkCategory').value;
-
-            const filtered = products.filter(p => category === 'Semua' || p.category === category);
-
-            tbody.innerHTML = filtered.map(p => {
-                const state = bulkSelectedProductsState[p.id] || { checked: true, qty: p.stock || 1 };
-                return `
-                    <tr class="hover:bg-slate-50 border-b border-slate-100">
-                        <td class="p-2 text-center">
-                            <input type="checkbox" ${state.checked ? 'checked' : ''} onchange="toggleBulkProductCheckState('${p.id}', this.checked)" class="rounded border-slate-300 text-indigo-600 focus:ring-indigo-500">
-                        </td>
-                        <td class="p-2 font-semibold text-slate-800">${p.name}</td>
-                        <td class="p-2 font-mono text-slate-500 text-[11px]">${p.barcode}</td>
-                        <td class="p-2 text-center font-bold text-slate-700">${p.stock}</td>
-                        <td class="p-2 text-center">
-                            <input type="number" min="1" max="500" value="${state.qty}" oninput="updateBulkProductQtyState('${p.id}', this.value)" class="w-16 px-2 py-1 text-center bg-slate-50 border border-slate-200 rounded-lg text-xs font-bold outline-none focus:ring-1 focus:ring-indigo-500">
-                        </td>
-                    </tr>
-                `;
-            }).join('');
-        }
-
-        function updateBarcodeGridStyle() {
-            const gridClass = document.getElementById('barcodeGridCols').value;
-            const container = document.getElementById('printableBarcodeArea');
-            container.className = `grid ${gridClass} gap-3 bg-white p-4 rounded-lg min-h-[200px]`;
-        }
-
-        function updateBarcodePreview() {
-            const container = document.getElementById('printableBarcodeArea');
-            container.innerHTML = '';
-            updateBarcodeGridStyle();
-
-            let itemsToPrint = []; // Array of { product, qty, showPrice, showStore }
-
-            if (barcodePrintMode === 'single') {
-                const selectEl = document.getElementById('barcodeSelectProduct');
-                const qtyInput = document.getElementById('barcodeQty');
-                const showPriceSelect = document.getElementById('barcodeShowPrice');
-
-                const prodId = selectEl.value;
-                const qty = Math.max(1, parseInt(qtyInput.value) || 1);
-                const showPrice = showPriceSelect.value === 'yes';
-
-                const product = products.find(p => p.id === prodId);
-                if (product) {
-                    selectedBarcodeProduct = product;
-                    itemsToPrint.push({ product, qty, showPrice, showStore: true });
-                }
-            } else {
-                // Bulk Printing Mode
-                const qtyMode = document.getElementById('barcodeBulkQtyMode').value;
-                const category = document.getElementById('barcodeBulkCategory').value;
-                const showPrice = document.getElementById('barcodeBulkShowPrice').checked;
-                const showStore = document.getElementById('barcodeBulkShowStore').checked;
-                const customTableContainer = document.getElementById('barcodeBulkCustomTableContainer');
-
-                if (qtyMode === 'custom') {
-                    customTableContainer.classList.remove('hidden');
-                    renderBulkCustomTable();
-                } else {
-                    customTableContainer.classList.add('hidden');
-                }
-
-                const filteredProducts = products.filter(p => category === 'Semua' || p.category === category);
-
-                filteredProducts.forEach(p => {
-                    let labelQty = 1;
-                    if (qtyMode === 'sesuai_stok') {
-                        labelQty = Math.max(1, p.stock || 1);
-                    } else if (qtyMode === 'satu_per_produk') {
-                        labelQty = 1;
-                    } else if (qtyMode === 'custom') {
-                        const state = bulkSelectedProductsState[p.id];
-                        if (state && !state.checked) return; // Skipped unselected item
-                        labelQty = state ? state.qty : 1;
-                    }
-
-                    itemsToPrint.push({ product: p, qty: labelQty, showPrice, showStore });
-                });
-            }
-
-            // Calculate Totals
-            let totalLabels = 0;
-            let totalProducts = itemsToPrint.length;
-
-            let labelCount = 0;
-            itemsToPrint.forEach(item => {
-                totalLabels += item.qty;
-
-                for (let i = 0; i < item.qty; i++) {
-                    const labelIndex = labelCount++;
-                    const labelCard = document.createElement('div');
-                    labelCard.className = "p-2 border border-slate-300 rounded-lg text-center bg-white flex flex-col items-center justify-between shadow-sm min-h-[110px] break-inside-avoid";
-
-                    if (item.showStore) {
-                        const compName = document.createElement('span');
-                        compName.className = "text-[9px] font-bold text-slate-700 truncate w-full uppercase tracking-tighter";
-                        compName.innerText = companyProfile.name;
-                        labelCard.appendChild(compName);
-                    }
-
-                    const prodName = document.createElement('span');
-                    prodName.className = "text-[10px] font-semibold text-slate-900 truncate w-full";
-                    prodName.innerText = item.product.name;
-                    labelCard.appendChild(prodName);
-
-                    const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
-                    svg.id = `barcode-svg-${labelIndex}`;
-                    svg.className = "w-full h-12 my-1";
-                    labelCard.appendChild(svg);
-
-                    if (item.showPrice) {
-                        const priceEl = document.createElement('span');
-                        priceEl.className = "text-[11px] font-bold text-slate-900";
-                        priceEl.innerText = `Rp ${item.product.price.toLocaleString('id-ID')}`;
-                        labelCard.appendChild(priceEl);
-                    }
-
-                    container.appendChild(labelCard);
-
-                    // Render Barcode with JsBarcode
-                    try {
-                        JsBarcode(`#barcode-svg-${labelIndex}`, item.product.barcode, {
-                            format: "CODE128",
-                            width: 1.5,
-                            height: 35,
-                            displayValue: true,
-                            fontSize: 10,
-                            margin: 2
-                        });
-                    } catch (e) {
-                        console.error('JsBarcode rendering error:', e);
-                    }
-                }
-            });
-
-            // Update Summary Text
-            document.getElementById('barcodeSummaryCount').innerText = `${totalLabels} Label Stiker`;
-            document.getElementById('barcodeSummaryProducts').innerText = `${totalProducts} Jenis Produk`;
-        }
-
-        function downloadSingleBarcodePNG() {
-            if (!selectedBarcodeProduct) {
-                showToast('Pilih produk terlebih dahulu', 'info');
-                return;
-            }
-
-            // Create temporary canvas for single barcode download
-            const tempCanvas = document.createElement('canvas');
-            try {
-                JsBarcode(tempCanvas, selectedBarcodeProduct.barcode, {
-                    format: "CODE128",
-                    width: 2,
-                    height: 60,
-                    displayValue: true,
-                    fontSize: 14
-                });
-
-                const link = document.createElement('a');
-                link.download = `Barcode-${selectedBarcodeProduct.name.replace(/\s+/g, '_')}-${selectedBarcodeProduct.barcode}.png`;
-                link.href = tempCanvas.toDataURL('image/png');
-                link.click();
-                showToast('Gambar Barcode berhasil diunduh!');
-            } catch (err) {
-                showToast('Gagal mengunduh barcode', 'error');
-            }
-        }
-
-        function printBarcodeLabels() {
-            window.print();
         }
     </script>
 </body>
