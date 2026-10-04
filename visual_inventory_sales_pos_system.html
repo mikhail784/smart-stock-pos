@@ -1,0 +1,979 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistem Inventori & Kasir AI Visual</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    },
+                    colors: {
+                        brand: {
+                            50: '#f0f9ff',
+                            100: '#e0f2fe',
+                            500: '#0ea5e9',
+                            600: '#0284c7',
+                            700: '#0369a1',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        .custom-scrollbar::-webkit-scrollbar { width: 6px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: #f1f5f9; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800 min-h-screen flex flex-col antialiased">
+
+    <!-- Header Utama -->
+    <header class="bg-white border-b border-slate-200 sticky top-0 z-30 shadow-sm">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-sky-500 to-indigo-600 flex items-center justify-center text-white shadow-md">
+                    <i class="fa-solid me-0 fa-boxes-stacked text-lg"></i>
+                </div>
+                <div>
+                    <h1 class="font-bold text-slate-900 text-lg leading-tight">Smart Stock AI</h1>
+                    <p class="text-xs text-slate-500">Inventori & POS Penjualan Visual</p>
+                </div>
+            </div>
+
+            <!-- Navigation Tabs -->
+            <nav class="hidden md:flex space-x-1 bg-slate-100 p-1 rounded-xl text-sm font-medium">
+                <button onclick="switchTab('inventory')" id="tab-btn-inventory" class="nav-tab active px-4 py-2 rounded-lg transition-all bg-white text-sky-600 shadow-sm">
+                    <i class="fa-solid fa-boxes-packing mr-2"></i>Inventori Barang
+                </button>
+                <button onclick="switchTab('pos')" id="tab-btn-pos" class="nav-tab px-4 py-2 rounded-lg transition-all text-slate-600 hover:text-slate-900">
+                    <i class="fa-solid fa-cash-register mr-2"></i>Kasir & POS
+                </button>
+                <button onclick="switchTab('sales')" id="tab-btn-sales" class="nav-tab px-4 py-2 rounded-lg transition-all text-slate-600 hover:text-slate-900">
+                    <i class="fa-solid fa-chart-line mr-2"></i>Laporan Penjualan
+                </button>
+            </nav>
+
+            <div class="flex items-center gap-2">
+                <button onclick="openAddItemModal()" class="bg-sky-600 hover:bg-sky-700 text-white px-4 py-2 rounded-xl text-sm font-semibold flex items-center gap-2 shadow-sm transition">
+                    <i class="fa-solid fa-plus"></i>
+                    <span class="hidden sm:inline">Tambah Barang</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- Mobile Nav Tabs -->
+        <div class="flex md:hidden border-t border-slate-100 bg-white px-2 py-1 justify-around text-xs font-medium">
+            <button onclick="switchTab('inventory')" id="mob-tab-btn-inventory" class="py-2 px-3 text-sky-600 font-semibold border-b-2 border-sky-600">
+                <i class="fa-solid fa-boxes-packing block text-center mb-0.5"></i>Inventori
+            </button>
+            <button onclick="switchTab('pos')" id="mob-tab-btn-pos" class="py-2 px-3 text-slate-500">
+                <i class="fa-solid fa-cash-register block text-center mb-0.5"></i>Kasir (POS)
+            </button>
+            <button onclick="switchTab('sales')" id="mob-tab-btn-sales" class="py-2 px-3 text-slate-500">
+                <i class="fa-solid fa-chart-line block text-center mb-0.5"></i>Laporan
+            </button>
+        </div>
+    </header>
+
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 flex-1 w-full">
+
+        <!-- Banner Metrik Cepat -->
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+            <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex items-center gap-4">
+                <div class="w-12 h-12 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center text-xl shrink-0">
+                    <i class="fa-solid fa-cubes"></i>
+                </div>
+                <div>
+                    <p class="text-xs font-medium text-slate-500">Total Produk</p>
+                    <h3 id="stat-total-items" class="text-xl font-bold text-slate-800">0</h3>
+                </div>
+            </div>
+
+            <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex items-center gap-4">
+                <div class="w-12 h-12 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center text-xl shrink-0">
+                    <i class="fa-solid fa-triangle-exclamation"></i>
+                </div>
+                <div>
+                    <p class="text-xs font-medium text-slate-500">Stok Menipis</p>
+                    <h3 id="stat-low-stock" class="text-xl font-bold text-amber-600">0</h3>
+                </div>
+            </div>
+
+            <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex items-center gap-4">
+                <div class="w-12 h-12 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center text-xl shrink-0">
+                    <i class="fa-solid fa-money-bill-wave"></i>
+                </div>
+                <div>
+                    <p class="text-xs font-medium text-slate-500">Penjualan Hari Ini</p>
+                    <h3 id="stat-today-revenue" class="text-xl font-bold text-emerald-600">Rp 0</h3>
+                </div>
+            </div>
+
+            <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex items-center gap-4">
+                <div class="w-12 h-12 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center text-xl shrink-0">
+                    <i class="fa-solid fa-receipt"></i>
+                </div>
+                <div>
+                    <p class="text-xs font-medium text-slate-500">Total Transaksi</p>
+                    <h3 id="stat-total-tx" class="text-xl font-bold text-slate-800">0</h3>
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB 1: INVENTORI BARANG -->
+        <section id="view-inventory" class="tab-content space-y-4">
+            <!-- Filter & Search Bar -->
+            <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex flex-col md:flex-row gap-4 items-center justify-between">
+                <div class="relative w-full md:w-96">
+                    <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400"></i>
+                    <input type="text" id="inventory-search" oninput="renderInventory()" placeholder="Cari nama barang, kategori, atau ciri visual..." class="w-full pl-10 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-sky-500">
+                </div>
+
+                <div class="flex items-center gap-3 w-full md:w-auto overflow-x-auto pb-1 md:pb-0">
+                    <select id="inventory-category-filter" onchange="renderInventory()" class="bg-slate-50 border border-slate-200 text-slate-700 text-sm rounded-xl px-3 py-2 focus:outline-none focus:ring-2 focus:ring-sky-500">
+                        <option value="ALL">Semua Kategori</option>
+                        <option value="Minuman">Minuman</option>
+                        <option value="Makanan">Makanan/Snack</option>
+                        <option value="Elektronik">Elektronik</option>
+                        <option value="Atk">ATK & Peralatan</option>
+                        <option value="Lainnya">Lainnya</option>
+                    </select>
+
+                    <button onclick="toggleLowStockFilter()" id="btn-low-stock-filter" class="px-3 py-2 border border-slate-200 text-slate-600 rounded-xl text-sm font-medium flex items-center gap-2 whitespace-nowrap hover:bg-slate-50">
+                        <i class="fa-solid fa-filter text-amber-500"></i>
+                        <span>Stok Menipis Saja</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Grid Kartu Barang -->
+            <div id="inventory-grid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                <!-- Data barang di-render via JavaScript -->
+            </div>
+            
+            <div id="inventory-empty" class="hidden text-center py-12 bg-white rounded-2xl border border-dashed border-slate-300">
+                <i class="fa-solid fa-box-open text-4xl text-slate-300 mb-3"></i>
+                <h3 class="text-slate-700 font-semibold">Tidak ada barang ditemukan</h3>
+                <p class="text-xs text-slate-500 mt-1">Coba sesuaikan kata kunci pencarian atau tambah barang baru.</p>
+            </div>
+        </section>
+
+        <!-- TAB 2: KASIR & POS -->
+        <section id="view-pos" class="tab-content hidden grid grid-cols-1 lg:grid-cols-12 gap-6">
+            <!-- Katalog Pilih Barang (Left Side) -->
+            <div class="lg:col-span-7 xl:col-span-8 space-y-4">
+                <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex flex-col sm:flex-row gap-3 justify-between items-center">
+                    <div class="relative w-full">
+                        <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400"></i>
+                        <input type="text" id="pos-search" oninput="renderPosCatalog()" placeholder="Cari barang untuk transaksi..." class="w-full pl-10 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-sky-500">
+                    </div>
+
+                    <!-- Scan Visual Quick Search -->
+                    <button onclick="openVisualMatchModal()" class="w-full sm:w-auto px-4 py-2 bg-indigo-50 text-indigo-700 border border-indigo-200 rounded-xl text-sm font-semibold flex items-center justify-center gap-2 hover:bg-indigo-100 transition shrink-0">
+                        <i class="fa-solid fa-camera"></i>
+                        <span>Pindai Foto Barang</span>
+                    </button>
+                </div>
+
+                <div id="pos-catalog-grid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+                    <!-- Katalog Kasir via JS -->
+                </div>
+            </div>
+
+            <!-- Keranjang Belanja (Right Side) -->
+            <div class="lg:col-span-5 xl:col-span-4">
+                <div class="bg-white rounded-2xl border border-slate-200 shadow-sm flex flex-col h-[calc(100vh-200px)] min-h-[500px] sticky top-20">
+                    <div class="p-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/50 rounded-t-2xl">
+                        <div class="flex items-center gap-2">
+                            <i class="fa-solid fa-cart-shopping text-sky-600"></i>
+                            <h2 class="font-bold text-slate-800">Keranjang Belanja</h2>
+                        </div>
+                        <button onclick="clearCart()" class="text-xs text-rose-600 hover:text-rose-700 font-medium">Kosongkan</button>
+                    </div>
+
+                    <!-- Item List -->
+                    <div id="cart-items" class="flex-1 overflow-y-auto p-4 space-y-3 custom-scrollbar">
+                        <!-- Items rendered JS -->
+                    </div>
+
+                    <!-- Totals & Payment -->
+                    <div class="p-4 border-t border-slate-100 bg-slate-50/50 rounded-b-2xl space-y-3">
+                        <div class="space-y-1 text-sm text-slate-600">
+                            <div class="flex justify-between">
+                                <span>Subtotal</span>
+                                <span id="cart-subtotal" class="font-semibold text-slate-800">Rp 0</span>
+                            </div>
+                            <div class="flex justify-between text-xs text-slate-500">
+                                <span>Pajak (0%)</span>
+                                <span>Rp 0</span>
+                            </div>
+                            <div class="flex justify-between text-base font-bold text-slate-900 pt-2 border-t border-slate-200">
+                                <span>Total Bayar</span>
+                                <span id="cart-total" class="text-sky-600">Rp 0</span>
+                            </div>
+                        </div>
+
+                        <button onclick="processCheckout()" id="btn-checkout" disabled class="w-full py-3 bg-sky-600 text-white font-bold rounded-xl shadow-md hover:bg-sky-700 transition disabled:bg-slate-300 disabled:cursor-not-allowed flex items-center justify-center gap-2">
+                            <i class="fa-solid fa-check"></i>
+                            <span>Proses Transaksi</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- TAB 3: LAPORAN PENJUALAN -->
+        <section id="view-sales" class="tab-content hidden space-y-4">
+            <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
+                <h2 class="text-lg font-bold text-slate-800 mb-4 flex items-center gap-2">
+                    <i class="fa-solid fa-clock-rotate-left text-sky-600"></i>
+                    Riwayat Transaksi Penjualan
+                </h2>
+
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left text-sm text-slate-600">
+                        <thead class="bg-slate-50 text-slate-700 uppercase text-xs font-semibold">
+                            <tr>
+                                <th class="px-4 py-3 rounded-l-xl">ID Transaksi</th>
+                                <th class="px-4 py-3">Waktu</th>
+                                <th class="px-4 py-3">Item Pembelian</th>
+                                <th class="px-4 py-3">Jumlah Item</th>
+                                <th class="px-4 py-3 text-right">Total Biaya</th>
+                                <th class="px-4 py-3 rounded-r-xl text-center">Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody id="sales-history-table" class="divide-y divide-slate-100">
+                            <!-- Rendered JS -->
+                        </tbody>
+                    </table>
+                </div>
+
+                <div id="sales-empty" class="text-center py-8 text-slate-400 text-sm">
+                    Belum ada riwayat transaksi hari ini.
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- MODAL: TAMBAH / EDIT BARANG DENGAN AI VISUAL -->
+    <div id="modal-add-item" class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm hidden flex items-center justify-center p-4 overflow-y-auto">
+        <div class="bg-white w-full max-w-2xl rounded-3xl shadow-2xl overflow-hidden my-8 transform transition-all">
+            <div class="px-6 py-4 bg-slate-900 text-white flex justify-between items-center">
+                <div class="flex items-center gap-2">
+                    <i class="fa-solid fa-wand-magic-sparkles text-sky-400"></i>
+                    <h3 class="font-bold text-lg" id="modal-item-title">Tambah Barang & Deteksi AI Visual</h3>
+                </div>
+                <button onclick="closeAddItemModal()" class="text-slate-400 hover:text-white text-xl">&times;</button>
+            </div>
+
+            <form id="form-item" onsubmit="handleSaveItem(event)" class="p-6 space-y-4">
+                <input type="hidden" id="item-id">
+
+                <!-- Upload / Capture Foto Barang -->
+                <div>
+                    <label class="block text-xs font-bold uppercase tracking-wider text-slate-600 mb-2">Foto / Biometrik Visual Barang</label>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 items-center">
+                        <!-- Preview Box -->
+                        <div id="image-preview-container" class="relative border-2 border-dashed border-slate-300 rounded-2xl h-48 flex flex-col items-center justify-center bg-slate-50 overflow-hidden group">
+                            <img id="image-preview" src="" class="hidden w-full h-full object-contain p-2">
+                            <div id="image-placeholder" class="text-center p-4">
+                                <i class="fa-solid fa-camera-retro text-3xl text-slate-400 mb-2"></i>
+                                <p class="text-xs text-slate-500 font-medium">Unggah atau ambil foto barang</p>
+                            </div>
+                            <input type="file" id="item-image-file" accept="image/*" onchange="previewImage(event)" class="absolute inset-0 opacity-0 cursor-pointer">
+                        </div>
+
+                        <!-- Tombol Pemicu AI & Instruksi -->
+                        <div class="space-y-3">
+                            <button type="button" onclick="analyzeImageWithAI()" id="btn-ai-analyze" disabled class="w-full py-3 px-4 bg-gradient-to-r from-sky-600 to-indigo-600 text-white font-semibold rounded-xl text-sm shadow-md hover:from-sky-700 hover:to-indigo-700 transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2">
+                                <i class="fa-solid fa-brain"></i>
+                                <span>Analisis AI Visual (Gemini)</span>
+                            </button>
+                            <p class="text-xs text-slate-500 leading-relaxed">
+                                <i class="fa-solid fa-circle-info text-sky-500 mr-1"></i>
+                                <b>Teknologi AI Gemini</b> akan membaca gambar produk dan menyarankan <b>Nama Barang</b>, <b>Kategori</b>, serta <b>Ciri Visual Produk</b> secara otomatis!
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <hr class="border-slate-100">
+
+                <!-- Form Fields -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-700 mb-1">Nama Barang *</label>
+                        <input type="text" id="item-name" required placeholder="Contoh: Kopi Botol Mocha" class="w-full px-3 py-2 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-sky-500 focus:outline-none">
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-700 mb-1">Kategori *</label>
+                        <select id="item-category" required class="w-full px-3 py-2 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-sky-500 focus:outline-none">
+                            <option value="Minuman">Minuman</option>
+                            <option value="Makanan">Makanan/Snack</option>
+                            <option value="Elektronik">Elektronik</option>
+                            <option value="Atk">ATK & Peralatan</option>
+                            <option value="Lainnya">Lainnya</option>
+                        </select>
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-700 mb-1">Harga Jual (Rp) *</label>
+                        <input type="number" id="item-price" required min="0" placeholder="10000" class="w-full px-3 py-2 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-sky-500 focus:outline-none">
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-700 mb-1">Jumlah Stok Awal *</label>
+                        <input type="number" id="item-stock" required min="0" placeholder="20" class="w-full px-3 py-2 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-sky-500 focus:outline-none">
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-semibold text-slate-700 mb-1">Ciri Biometrik / Visual Produk (AI Extracted)</label>
+                    <textarea id="item-visual-desc" rows="2" placeholder="Detail fisik barang (warna, bentuk kemasan, merk, tulisan pada kemasan)" class="w-full px-3 py-2 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-sky-500 focus:outline-none bg-slate-50"></textarea>
+                </div>
+
+                <div class="flex justify-end gap-3 pt-3">
+                    <button type="button" onclick="closeAddItemModal()" class="px-4 py-2 border border-slate-200 text-slate-600 rounded-xl text-sm font-medium hover:bg-slate-50">Batal</button>
+                    <button type="submit" class="px-6 py-2 bg-sky-600 text-white rounded-xl text-sm font-semibold hover:bg-sky-700 shadow-md">Simpan Barang</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL: PEMINDAIAN FOTO BARANG UNTUK POS -->
+    <div id="modal-visual-match" class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm hidden flex items-center justify-center p-4">
+        <div class="bg-white w-full max-w-md rounded-3xl shadow-2xl p-6 text-center space-y-4">
+            <div class="flex justify-between items-center">
+                <h3 class="font-bold text-slate-800">Pindai Visual Produk</h3>
+                <button onclick="closeVisualMatchModal()" class="text-slate-400 hover:text-slate-600">&times;</button>
+            </div>
+
+            <p class="text-xs text-slate-500">Unggah foto barang untuk dicocokkan secara otomatis dengan stok inventori menggunakan AI Gemini.</p>
+
+            <div class="border-2 border-dashed border-sky-300 rounded-2xl p-6 bg-sky-50/50 relative flex flex-col items-center justify-center">
+                <i class="fa-solid fa-expand text-4xl text-sky-500 mb-2 animate-pulse"></i>
+                <span class="text-xs font-semibold text-sky-700">Pilih Foto Barang</span>
+                <input type="file" id="pos-scan-file" accept="image/*" onchange="handlePosVisualScan(event)" class="absolute inset-0 opacity-0 cursor-pointer">
+            </div>
+
+            <div id="scan-loading" class="hidden text-sky-600 text-xs font-semibold flex items-center justify-center gap-2 py-2">
+                <i class="fa-solid fa-spinner fa-spin"></i> Mencocokkan fitur visual produk...
+            </div>
+        </div>
+    </div>
+
+    <!-- TOAST NOTIFICATION CONTAINER -->
+    <div id="toast-container" class="fixed bottom-5 right-5 z-50 flex flex-col gap-2 pointer-events-none"></div>
+
+    <script>
+        // APP STATE
+        let inventory = [
+            {
+                id: 'prod-1',
+                name: 'Kopi Susu Espresso Botol',
+                category: 'Minuman',
+                price: 18000,
+                stock: 12,
+                minStock: 5,
+                visualDesc: 'Botol plastik transparan berisi cairan cokelat kopi susu dengan tutup hitam.',
+                image: 'https://images.unsplash.com/photo-1517701604599-bb29b565090c?w=400&auto=format&fit=crop&q=80'
+            },
+            {
+                id: 'prod-2',
+                name: 'Snack Keripik Kentang',
+                category: 'Makanan',
+                price: 12500,
+                stock: 3,
+                minStock: 5,
+                visualDesc: 'Kemasan kantong foil warna kuning kemerahan dengan gambar keripik renyah.',
+                image: 'https://images.unsplash.com/photo-1566478989037-eec170784d0b?w=400&auto=format&fit=crop&q=80'
+            },
+            {
+                id: 'prod-3',
+                name: 'Headphone Wireless Black',
+                category: 'Elektronik',
+                price: 250000,
+                stock: 8,
+                minStock: 2,
+                visualDesc: 'Headphone Bluetooth ear-cup warna hitam matte minimalis.',
+                image: 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=400&auto=format&fit=crop&q=80'
+            }
+        ];
+
+        let cart = [];
+        let salesHistory = [];
+        let lowStockOnly = false;
+        let currentBase64Image = null;
+
+        // INITIALIZATION
+        window.addEventListener('DOMContentLoaded', () => {
+            renderInventory();
+            renderPosCatalog();
+            updateStats();
+        });
+
+        // TOAST NOTIFICATION
+        function showToast(message, type = 'info') {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            
+            const bgClass = type === 'success' ? 'bg-emerald-600 text-white' : 
+                            type === 'error' ? 'bg-rose-600 text-white' : 'bg-slate-800 text-white';
+            
+            toast.className = `${bgClass} px-4 py-3 rounded-xl shadow-xl text-xs font-medium transition-all duration-300 transform translate-y-2 pointer-events-auto flex items-center gap-2`;
+            toast.innerHTML = `<i class="fa-solid ${type==='success'?'fa-circle-check':type==='error'?'fa-circle-exclamation':'fa-info-circle'}"></i> <span>${message}</span>`;
+            
+            container.appendChild(toast);
+            setTimeout(() => {
+                toast.classList.add('opacity-0', 'translate-y-4');
+                setTimeout(() => toast.remove(), 300);
+            }, 3000);
+        }
+
+        // TAB SWITCHING
+        function switchTab(tab) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+            document.querySelectorAll('.nav-tab').forEach(el => {
+                el.classList.remove('bg-white', 'text-sky-600', 'shadow-sm');
+                el.classList.add('text-slate-600');
+            });
+
+            document.getElementById(`view-${tab}`).classList.remove('hidden');
+            const activeBtn = document.getElementById(`tab-btn-${tab}`);
+            if(activeBtn) {
+                activeBtn.classList.add('bg-white', 'text-sky-600', 'shadow-sm');
+                activeBtn.classList.remove('text-slate-600');
+            }
+
+            if(tab === 'inventory') renderInventory();
+            if(tab === 'pos') renderPosCatalog();
+            if(tab === 'sales') renderSalesHistory();
+        }
+
+        // RENDER INVENTORY
+        function renderInventory() {
+            const grid = document.getElementById('inventory-grid');
+            const emptyState = document.getElementById('inventory-empty');
+            const searchQuery = document.getElementById('inventory-search').value.toLowerCase();
+            const categoryFilter = document.getElementById('inventory-category-filter').value;
+
+            grid.innerHTML = '';
+
+            let filtered = inventory.filter(item => {
+                const matchQuery = item.name.toLowerCase().includes(searchQuery) || 
+                                   item.category.toLowerCase().includes(searchQuery) ||
+                                   (item.visualDesc && item.visualDesc.toLowerCase().includes(searchQuery));
+                const matchCategory = categoryFilter === 'ALL' || item.category === categoryFilter;
+                const matchLowStock = !lowStockOnly || item.stock <= item.minStock;
+
+                return matchQuery && matchCategory && matchLowStock;
+            });
+
+            if(filtered.length === 0) {
+                emptyState.classList.remove('hidden');
+            } else {
+                emptyState.classList.add('hidden');
+            }
+
+            filtered.forEach(item => {
+                const isLow = item.stock <= item.minStock;
+                const card = document.createElement('div');
+                card.className = "bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm hover:shadow-md transition flex flex-col";
+                card.innerHTML = `
+                    <div class="relative h-40 bg-slate-100 overflow-hidden">
+                        <img src="${item.image}" alt="${item.name}" class="w-full h-full object-cover">
+                        <span class="absolute top-2 right-2 px-2.5 py-1 rounded-full text-[10px] font-bold tracking-wide uppercase ${isLow ? 'bg-amber-500 text-white shadow-sm' : 'bg-emerald-500 text-white'}">
+                            ${isLow ? 'Stok Menipis: ' + item.stock : 'Stok: ' + item.stock}
+                        </span>
+                        <span class="absolute bottom-2 left-2 px-2 py-0.5 rounded-lg bg-slate-900/70 text-white backdrop-blur-sm text-[10px] font-medium">
+                            ${item.category}
+                        </span>
+                    </div>
+
+                    <div class="p-4 flex-1 flex flex-col justify-between">
+                        <div>
+                            <h4 class="font-bold text-slate-800 text-sm line-clamp-1">${item.name}</h4>
+                            <p class="text-xs text-slate-500 line-clamp-2 mt-1 font-light bg-slate-50 p-1.5 rounded-lg border border-slate-100">
+                                <i class="fa-solid fa-eye text-sky-500 mr-1"></i>${item.visualDesc || 'Belum ada ciri visual.'}
+                            </p>
+                        </div>
+
+                        <div class="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between">
+                            <span class="font-extrabold text-sky-600 text-base">Rp ${item.price.toLocaleString('id-ID')}</span>
+                            <div class="flex items-center gap-1">
+                                <button onclick="adjustStock('${item.id}', -1)" class="w-7 h-7 bg-slate-100 hover:bg-slate-200 rounded-lg text-slate-700 text-xs font-bold transition">-</button>
+                                <span class="text-xs font-bold w-6 text-center">${item.stock}</span>
+                                <button onclick="adjustStock('${item.id}', 1)" class="w-7 h-7 bg-slate-100 hover:bg-slate-200 rounded-lg text-slate-700 text-xs font-bold transition">+</button>
+                                <button onclick="deleteItem('${item.id}')" class="w-7 h-7 text-rose-500 hover:bg-rose-50 rounded-lg text-xs transition ml-1">
+                                    <i class="fa-solid fa-trash"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                grid.appendChild(card);
+            });
+
+            updateStats();
+        }
+
+        function toggleLowStockFilter() {
+            lowStockOnly = !lowStockOnly;
+            const btn = document.getElementById('btn-low-stock-filter');
+            if(lowStockOnly) {
+                btn.classList.add('bg-amber-50', 'border-amber-300', 'text-amber-700');
+            } else {
+                btn.classList.remove('bg-amber-50', 'border-amber-300', 'text-amber-700');
+            }
+            renderInventory();
+        }
+
+        function adjustStock(id, amount) {
+            const item = inventory.find(i => i.id === id);
+            if(item) {
+                item.stock = Math.max(0, item.stock + amount);
+                renderInventory();
+                renderPosCatalog();
+            }
+        }
+
+        function deleteItem(id) {
+            inventory = inventory.filter(i => i.id !== id);
+            showToast('Barang berhasil dihapus.', 'info');
+            renderInventory();
+            renderPosCatalog();
+        }
+
+        // AI IMAGE ANALYSIS VIA GEMINI API
+        function previewImage(event) {
+            const file = event.target.files[0];
+            if(!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const img = document.getElementById('image-preview');
+                img.src = e.target.result;
+                img.classList.remove('hidden');
+                document.getElementById('image-placeholder').classList.add('hidden');
+                document.getElementById('btn-ai-analyze').disabled = false;
+
+                // Base64 clean up for API payload
+                currentBase64Image = e.target.result.split(',')[1];
+            };
+            reader.readAsDataURL(file);
+        }
+
+        async function analyzeImageWithAI() {
+            if(!currentBase64Image) {
+                showToast('Pilih atau unggah gambar barang terlebih dahulu!', 'error');
+                return;
+            }
+
+            const btn = document.getElementById('btn-ai-analyze');
+            btn.disabled = true;
+            btn.innerHTML = `<i class="fa-solid fa-circle-notch fa-spin"></i> Memproses Gemini AI...`;
+
+            try {
+                // System Instruction & Prompt
+                const prompt = "Analisis foto produk/barang ini. Berikan nama produk yang spesifik (singkat), pilih kategori yang paling cocok diantara [Minuman, Makanan, Elektronik, Atk, Lainnya], estimasi harga jual standar dalam Rupiah (angka saja), dan buat deskripsi ciri visual biometrik barang (seperti bentuk kemasan, warna utama, tekstur, tulisan merk). Kembalikan dalam format JSON.";
+
+                const apiKey = ""; // Disertakan otomatis oleh runtime platform jika dikosongkan
+                const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key=${apiKey}`;
+
+                const payload = {
+                    contents: [{
+                        parts: [
+                            { text: prompt },
+                            {
+                                inlineData: {
+                                    mimeType: "image/jpeg",
+                                    data: currentBase64Image
+                                }
+                            }
+                        ]
+                    }],
+                    generationConfig: {
+                        responseMimeType: "application/json",
+                        responseSchema: {
+                            type: "OBJECT",
+                            properties: {
+                                name: { type: "STRING" },
+                                category: { type: "STRING" },
+                                estimatedPrice: { type: "NUMBER" },
+                                visualDescription: { type: "STRING" }
+                            },
+                            propertyOrdering: ["name", "category", "estimatedPrice", "visualDescription"]
+                        }
+                    }
+                };
+
+                const res = await fetch(apiUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                const data = await res.json();
+                const resultText = data.candidates?.[0]?.content?.parts?.[0]?.text;
+
+                if(resultText) {
+                    const parsed = JSON.parse(resultText);
+                    document.getElementById('item-name').value = parsed.name || '';
+                    if(['Minuman', 'Makanan', 'Elektronik', 'Atk', 'Lainnya'].includes(parsed.category)) {
+                        document.getElementById('item-category').value = parsed.category;
+                    }
+                    if(parsed.estimatedPrice) {
+                        document.getElementById('item-price').value = parsed.estimatedPrice;
+                    }
+                    document.getElementById('item-visual-desc').value = parsed.visualDescription || '';
+
+                    showToast('AI berhasil menganalisis foto produk!', 'success');
+                } else {
+                    showToast('Gagal memproses AI. Silakan isi form manual.', 'error');
+                }
+            } catch (err) {
+                console.error(err);
+                showToast('Gagal terhubung dengan layanan Gemini AI.', 'error');
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = `<i class="fa-solid fa-brain"></i> Analisis AI Visual (Gemini)`;
+            }
+        }
+
+        // SAVE ITEM FORM
+        function handleSaveItem(e) {
+            e.preventDefault();
+            const name = document.getElementById('item-name').value;
+            const category = document.getElementById('item-category').value;
+            const price = parseInt(document.getElementById('item-price').value) || 0;
+            const stock = parseInt(document.getElementById('item-stock').value) || 0;
+            const visualDesc = document.getElementById('item-visual-desc').value;
+            const imgSrc = document.getElementById('image-preview').src || 'https://placehold.co/400x300/e2e8f0/64748b?text=Foto+Barang';
+
+            const newItem = {
+                id: 'prod-' + Date.now(),
+                name,
+                category,
+                price,
+                stock,
+                minStock: 5,
+                visualDesc,
+                image: imgSrc
+            };
+
+            inventory.unshift(newItem);
+            showToast('Barang baru berhasil disimpan!', 'success');
+            closeAddItemModal();
+            renderInventory();
+            renderPosCatalog();
+        }
+
+        // POS CATALOG RENDER
+        function renderPosCatalog() {
+            const grid = document.getElementById('pos-catalog-grid');
+            const searchQuery = document.getElementById('pos-search').value.toLowerCase();
+
+            grid.innerHTML = '';
+
+            const filtered = inventory.filter(i => 
+                i.name.toLowerCase().includes(searchQuery) || 
+                i.category.toLowerCase().includes(searchQuery) ||
+                (i.visualDesc && i.visualDesc.toLowerCase().includes(searchQuery))
+            );
+
+            filtered.forEach(item => {
+                const card = document.createElement('div');
+                card.onclick = () => addToCart(item.id);
+                card.className = "bg-white p-3 rounded-2xl border border-slate-200 shadow-sm hover:border-sky-500 hover:shadow-md cursor-pointer transition flex flex-col justify-between group";
+                card.innerHTML = `
+                    <div class="h-28 rounded-xl bg-slate-100 overflow-hidden mb-2 relative">
+                        <img src="${item.image}" class="w-full h-full object-cover group-hover:scale-105 transition duration-300">
+                        <span class="absolute bottom-1 right-1 px-1.5 py-0.5 rounded bg-slate-900/80 text-white text-[10px] font-bold">
+                            Stok: ${item.stock}
+                        </span>
+                    </div>
+                    <div>
+                        <h5 class="font-bold text-xs text-slate-800 line-clamp-1">${item.name}</h5>
+                        <p class="font-extrabold text-sky-600 text-xs mt-1">Rp ${item.price.toLocaleString('id-ID')}</p>
+                    </div>
+                `;
+                grid.appendChild(card);
+            });
+        }
+
+        // CART LOGIC
+        function addToCart(itemId) {
+            const item = inventory.find(i => i.id === itemId);
+            if(!item || item.stock <= 0) {
+                showToast('Stok barang habis!', 'error');
+                return;
+            }
+
+            const exist = cart.find(c => c.id === itemId);
+            if(exist) {
+                if(exist.qty >= item.stock) {
+                    showToast('Jumlah melebihi stok yang tersedia!', 'error');
+                    return;
+                }
+                exist.qty += 1;
+            } else {
+                cart.push({ ...item, qty: 1 });
+            }
+
+            renderCart();
+        }
+
+        function updateCartQty(id, delta) {
+            const index = cart.findIndex(c => c.id === id);
+            if(index !== -1) {
+                const stock = inventory.find(i => i.id === id)?.stock || 0;
+                cart[index].qty += delta;
+
+                if(cart[index].qty > stock) {
+                    cart[index].qty = stock;
+                    showToast('Batas maksimum stok tercapai.', 'info');
+                }
+
+                if(cart[index].qty <= 0) {
+                    cart.splice(index, 1);
+                }
+            }
+            renderCart();
+        }
+
+        function clearCart() {
+            cart = [];
+            renderCart();
+        }
+
+        function renderCart() {
+            const cartContainer = document.getElementById('cart-items');
+            const subtotalEl = document.getElementById('cart-subtotal');
+            const totalEl = document.getElementById('cart-total');
+            const btnCheckout = document.getElementById('btn-checkout');
+
+            cartContainer.innerHTML = '';
+            let total = 0;
+
+            if(cart.length === 0) {
+                cartContainer.innerHTML = `
+                    <div class="text-center py-12 text-slate-400">
+                        <i class="fa-solid fa-basket-shopping text-3xl mb-2"></i>
+                        <p class="text-xs">Keranjang masih kosong</p>
+                    </div>
+                `;
+                btnCheckout.disabled = true;
+            } else {
+                btnCheckout.disabled = false;
+                cart.forEach(item => {
+                    const itemTotal = item.price * item.qty;
+                    total += itemTotal;
+
+                    const row = document.createElement('div');
+                    row.className = "flex items-center justify-between p-2.5 bg-slate-50 rounded-xl border border-slate-100 text-xs";
+                    row.innerHTML = `
+                        <div class="flex items-center gap-2 flex-1 min-w-0 pr-2">
+                            <img src="${item.image}" class="w-10 h-10 rounded-lg object-cover shrink-0">
+                            <div class="truncate">
+                                <h5 class="font-bold text-slate-800 truncate">${item.name}</h5>
+                                <p class="text-slate-500 text-[10px]">Rp ${item.price.toLocaleString('id-ID')}</p>
+                            </div>
+                        </div>
+
+                        <div class="flex items-center gap-2 shrink-0">
+                            <div class="flex items-center border border-slate-200 rounded-lg bg-white">
+                                <button onclick="updateCartQty('${item.id}', -1)" class="w-6 h-6 flex items-center justify-center font-bold text-slate-600">-</button>
+                                <span class="w-6 text-center font-semibold text-xs">${item.qty}</span>
+                                <button onclick="updateCartQty('${item.id}', 1)" class="w-6 h-6 flex items-center justify-center font-bold text-slate-600">+</button>
+                            </div>
+                            <span class="font-bold text-slate-800 w-16 text-right">Rp ${itemTotal.toLocaleString('id-ID')}</span>
+                        </div>
+                    `;
+                    cartContainer.appendChild(row);
+                });
+            }
+
+            subtotalEl.innerText = `Rp ${total.toLocaleString('id-ID')}`;
+            totalEl.innerText = `Rp ${total.toLocaleString('id-ID')}`;
+        }
+
+        function processCheckout() {
+            if(cart.length === 0) return;
+
+            let totalTxAmount = 0;
+            let totalQty = 0;
+
+            // Reduce inventory stock
+            cart.forEach(c => {
+                const invItem = inventory.find(i => i.id === c.id);
+                if(invItem) {
+                    invItem.stock -= c.qty;
+                }
+                totalTxAmount += (c.price * c.qty);
+                totalQty += c.qty;
+            });
+
+            // Record transaction
+            const tx = {
+                id: 'TRX-' + Math.floor(100000 + Math.random() * 900000),
+                time: new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }),
+                items: [...cart],
+                itemCount: totalQty,
+                total: totalTxAmount
+            };
+
+            salesHistory.unshift(tx);
+            cart = [];
+
+            showToast(`Transaksi Berhasil! (ID: ${tx.id})`, 'success');
+            renderCart();
+            renderInventory();
+            renderPosCatalog();
+            updateStats();
+        }
+
+        function renderSalesHistory() {
+            const tbody = document.getElementById('sales-history-table');
+            const emptyEl = document.getElementById('sales-empty');
+
+            tbody.innerHTML = '';
+
+            if(salesHistory.length === 0) {
+                emptyEl.classList.remove('hidden');
+            } else {
+                emptyEl.classList.add('hidden');
+                salesHistory.forEach(tx => {
+                    const itemsDesc = tx.items.map(i => `${i.name} (${i.qty}x)`).join(', ');
+                    const tr = document.createElement('tr');
+                    tr.className = "hover:bg-slate-50 transition";
+                    tr.innerHTML = `
+                        <td class="px-4 py-3 font-bold text-slate-800">${tx.id}</td>
+                        <td class="px-4 py-3 text-slate-500">${tx.time}</td>
+                        <td class="px-4 py-3 max-w-xs truncate" title="${itemsDesc}">${itemsDesc}</td>
+                        <td class="px-4 py-3 font-semibold">${tx.itemCount} barang</td>
+                        <td class="px-4 py-3 font-bold text-emerald-600 text-right">Rp ${tx.total.toLocaleString('id-ID')}</td>
+                        <td class="px-4 py-3 text-center">
+                            <button onclick="showToast('Fitur cetak struk disimulasikan', 'info')" class="px-2.5 py-1 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-xs font-semibold">
+                                <i class="fa-solid fa-print"></i>
+                            </button>
+                        </td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+            }
+        }
+
+        // UPDATE METRIC STATS
+        function updateStats() {
+            document.getElementById('stat-total-items').innerText = inventory.length;
+            
+            const lowStockCount = inventory.filter(i => i.stock <= i.minStock).length;
+            document.getElementById('stat-low-stock').innerText = lowStockCount;
+
+            const todayRevenue = salesHistory.reduce((sum, tx) => sum + tx.total, 0);
+            document.getElementById('stat-today-revenue').innerText = `Rp ${todayRevenue.toLocaleString('id-ID')}`;
+
+            document.getElementById('stat-total-tx').innerText = salesHistory.length;
+        }
+
+        // VISUAL POS SEARCH MODAL
+        function openVisualMatchModal() {
+            document.getElementById('modal-visual-match').classList.remove('hidden');
+        }
+
+        function closeVisualMatchModal() {
+            document.getElementById('modal-visual-match').classList.add('hidden');
+            document.getElementById('scan-loading').classList.add('hidden');
+        }
+
+        async function handlePosVisualScan(e) {
+            const file = e.target.files[0];
+            if(!file) return;
+
+            const loader = document.getElementById('scan-loading');
+            loader.classList.remove('hidden');
+
+            const reader = new FileReader();
+            reader.onload = async function(evt) {
+                const base64 = evt.target.result.split(',')[1];
+                
+                try {
+                    // Match visual image with existing inventory list descriptions using Gemini API
+                    const inventoryDescs = inventory.map(i => `ID: ${i.id}, Nama: ${i.name}, Visual: ${i.visualDesc}`).join('\n');
+                    const prompt = `Cocokkan foto barang ini dengan salah satu barang dari daftar inventori berikut:\n${inventoryDescs}\n\nKembalikan JSON dengan bidang "matchedId" yang berisi ID barang yang paling cocok, atau null jika tidak ada yang cocok.`;
+
+                    const apiKey = "";
+                    const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key=${apiKey}`;
+
+                    const payload = {
+                        contents: [{
+                            parts: [
+                                { text: prompt },
+                                { inlineData: { mimeType: "image/jpeg", data: base64 } }
+                            ]
+                        }],
+                        generationConfig: {
+                            responseMimeType: "application/json",
+                            responseSchema: {
+                                type: "OBJECT",
+                                properties: { matchedId: { type: "STRING" } }
+                            }
+                        }
+                    };
+
+                    const res = await fetch(apiUrl, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(payload)
+                    });
+
+                    const data = await res.json();
+                    const matchedId = JSON.parse(data.candidates?.[0]?.content?.parts?.[0]?.text || '{}').matchedId;
+
+                    if(matchedId && inventory.some(i => i.id === matchedId)) {
+                        addToCart(matchedId);
+                        showToast('Barang berhasil ditemukan dan ditambahkan ke keranjang!', 'success');
+                        closeVisualMatchModal();
+                    } else {
+                        showToast('Barang tidak ditemukan di inventori.', 'error');
+                    }
+                } catch(err) {
+                    console.error(err);
+                    showToast('Gagal memindai foto barang.', 'error');
+                } finally {
+                    loader.classList.add('hidden');
+                }
+            };
+            reader.readAsDataURL(file);
+        }
+
+        // MODAL ADD ITEM OPEN/CLOSE
+        function openAddItemModal() {
+            document.getElementById('modal-add-item').classList.remove('hidden');
+        }
+
+        function closeAddItemModal() {
+            document.getElementById('modal-add-item').classList.add('hidden');
+            document.getElementById('form-item').reset();
+            document.getElementById('image-preview').classList.add('hidden');
+            document.getElementById('image-placeholder').classList.remove('hidden');
+            document.getElementById('btn-ai-analyze').disabled = true;
+            currentBase64Image = null;
+        }
+    </script>
+</body>
+</html>
