@@ -3,14 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>PosKu - Smart POS & Live Barcode Scanner</title>
+    <title>PosKu Smart POS & Real Camera Catalog</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- FontAwesome Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <!-- HTML5-QRCode Scanner Library -->
     <script src="https://unpkg.com/html5-qrcode"></script>
-    <!-- HTML2Canvas Library for Receipt-to-Image Export -->
+    <!-- HTML2Canvas Library for Receipt Export -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <!-- JsBarcode Library for Barcode Generation -->
     <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.5/dist/JsBarcode.all.min.js"></script>
@@ -21,7 +21,7 @@
             font-family: 'Plus Jakarta Sans', sans-serif;
             touch-action: manipulation;
         }
-        /* Custom scrollbar */
+        /* Custom scrollbars */
         ::-webkit-scrollbar {
             width: 6px;
             height: 6px;
@@ -42,7 +42,7 @@
             width: 100% !important;
         }
 
-        /* Live Camera Laser Scanner Beam Animation */
+        /* Live Laser Scanner Animation */
         @keyframes scanBeam {
             0% { top: 10%; opacity: 0.8; }
             50% { top: 85%; opacity: 1; }
@@ -91,11 +91,11 @@
             <div class="p-5 border-b border-slate-800 flex items-center justify-between">
                 <div class="flex items-center space-x-3">
                     <div class="w-10 h-10 rounded-xl bg-indigo-600 flex items-center justify-center text-white shadow-lg shadow-indigo-500/30 font-bold text-xl">
-                        <i class="fa-solid me-0.5 fa-store"></i>
+                        <i class="fa-solid fa-store me-0.5"></i>
                     </div>
                     <div>
                         <h1 class="font-bold text-lg leading-tight tracking-wide" id="navCompanyName">PosKu Smart</h1>
-                        <span class="text-xs text-indigo-400 font-medium">Sistem Kasir & Stok</span>
+                        <span class="text-xs text-indigo-400 font-medium">Sistem Kasir & Katalog Real</span>
                     </div>
                 </div>
             </div>
@@ -121,15 +121,15 @@
             </nav>
         </div>
 
-        <!-- Camera Scanner Quick Trigger in Sidebar -->
+        <!-- Camera Actions Sidebar -->
         <div class="p-4 border-t border-slate-800 space-y-2">
             <button onclick="openLiveCameraScanner('reduce_stock')" class="w-full bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white py-2.5 px-4 rounded-xl font-semibold text-sm shadow-lg shadow-emerald-900/40 flex items-center justify-center space-x-2 transition-all active:scale-95">
                 <i class="fa-solid fa-camera"></i>
-                <span>Scan Kamera HP (Kasir)</span>
+                <span>Scan Barcode Kamera</span>
             </button>
-            <button onclick="openLiveCameraScanner('add_product')" class="w-full bg-slate-800 hover:bg-slate-700 text-slate-300 py-2 px-4 rounded-xl font-medium text-xs flex items-center justify-center space-x-2 transition-all active:scale-95">
-                <i class="fa-solid fa-barcode"></i>
-                <span>Scan Tambah Produk</span>
+            <button onclick="openProductModal()" class="w-full bg-indigo-600/30 hover:bg-indigo-600/50 text-indigo-200 py-2 px-4 rounded-xl font-medium text-xs flex items-center justify-center space-x-2 transition-all border border-indigo-500/30">
+                <i class="fa-solid fa-camera-retro"></i>
+                <span>Foto Produk Kamera Real</span>
             </button>
         </div>
     </aside>
@@ -139,45 +139,67 @@
         
         <!-- TAB 1: KASIR & PENJUALAN -->
         <section id="sec-kasir" class="tab-content flex-1 flex flex-col md:flex-row overflow-hidden">
-            <!-- Left Side: Product Selection -->
+            <!-- Left Side: Product Selection & Cashier Modes -->
             <div class="flex-1 flex flex-col p-4 md:p-6 overflow-hidden space-y-4">
-                <!-- Search & Filter Header -->
+                
+                <!-- Cashier Mode Switcher & Controls -->
+                <div class="bg-white p-3 rounded-2xl border border-slate-200 shadow-sm flex flex-col sm:flex-row items-center justify-between gap-3">
+                    <!-- Mode Toggles (Opsi Kasir) -->
+                    <div class="flex items-center bg-slate-100 p-1 rounded-xl w-full sm:w-auto">
+                        <button id="btnModeCatalog" onclick="setCashierMode('catalog')" class="flex-1 sm:flex-none px-4 py-2 rounded-lg text-xs font-bold transition-all flex items-center justify-center space-x-2 bg-indigo-600 text-white shadow-sm">
+                            <i class="fa-solid fa-border-all"></i>
+                            <span>Mode Pilih Barang (Foto)</span>
+                        </button>
+                        <button id="btnModeBarcode" onclick="setCashierMode('barcode')" class="flex-1 sm:flex-none px-4 py-2 rounded-lg text-xs font-bold transition-all flex items-center justify-center space-x-2 text-slate-600 hover:text-slate-900">
+                            <i class="fa-solid fa-barcode"></i>
+                            <span>Mode Scan Barcode Live</span>
+                        </button>
+                    </div>
+
+                    <!-- Quick Scanner Trigger Button -->
+                    <button onclick="openLiveCameraScanner('reduce_stock')" class="w-full sm:w-auto bg-emerald-600 hover:bg-emerald-500 text-white px-4 py-2 rounded-xl text-xs font-bold flex items-center justify-center space-x-2 shadow-sm transition-all active:scale-95">
+                        <i class="fa-solid fa-camera text-sm"></i>
+                        <span>Buka Pemindai Kamera</span>
+                    </button>
+                </div>
+
+                <!-- Search & Category Filters -->
                 <div class="flex flex-col sm:flex-row gap-3 items-center justify-between">
                     <div class="relative w-full sm:w-80">
                         <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400"></i>
-                        <input type="text" id="kasirSearch" oninput="renderKasirProducts()" placeholder="Cari nama atau barcode..." class="w-full pl-10 pr-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 shadow-sm">
+                        <input type="text" id="kasirSearch" oninput="renderKasirProducts()" placeholder="Cari nama atau barcode produk..." class="w-full pl-10 pr-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 shadow-sm">
                     </div>
                     <div class="flex items-center gap-2 w-full sm:w-auto overflow-x-auto pb-1 sm:pb-0" id="categoryFilterContainer">
                         <!-- Dynamic Categories -->
                     </div>
                 </div>
 
-                <!-- Live Camera Scan Banner Quick Trigger -->
-                <div class="bg-gradient-to-r from-indigo-900 via-indigo-800 to-slate-900 text-white rounded-2xl p-4 flex items-center justify-between shadow-md border border-indigo-700/50">
+                <!-- Embedded Barcode Camera Banner (Visible in Scan Mode or Quick Access) -->
+                <div id="cashierScanBanner" class="bg-gradient-to-r from-indigo-900 via-indigo-800 to-slate-900 text-white rounded-2xl p-4 flex items-center justify-between shadow-md border border-indigo-700/50">
                     <div class="flex items-center space-x-3">
                         <div class="w-12 h-12 rounded-xl bg-indigo-500/30 border border-indigo-400/40 flex items-center justify-center text-indigo-300 text-2xl shrink-0">
                             <i class="fa-solid fa-qrcode animate-pulse"></i>
                         </div>
                         <div>
-                            <h2 class="font-bold text-sm text-white">Scan Barcode Live Kamera HP</h2>
-                            <p class="text-xs text-indigo-200">Arahkan kamera HP ke barang untuk tambah cepat ke keranjang</p>
+                            <h2 class="font-bold text-sm text-white">Scan Barcode Kamera HP Live</h2>
+                            <p class="text-xs text-indigo-200">Arahkan kamera ke barang untuk otomatis menambahkan ke keranjang belanja</p>
                         </div>
                     </div>
-                    <button onclick="openLiveCameraScanner('reduce_stock')" class="bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold px-4 py-2.5 rounded-xl text-xs flex items-center space-x-2 transition-all shadow-md active:scale-95 shrink-0">
+                    <button onclick="openLiveCameraScanner('reduce_stock')" class="bg-emerald-400 hover:bg-emerald-300 text-slate-950 font-bold px-4 py-2.5 rounded-xl text-xs flex items-center space-x-2 transition-all shadow-md active:scale-95 shrink-0">
                         <i class="fa-solid fa-camera text-sm"></i>
-                        <span>Buka Kamera</span>
+                        <span>Aktifkan Kamera</span>
                     </button>
                 </div>
 
-                <!-- Products Grid -->
+                <!-- Visual Products Grid (Pilih Barang Sendiri via Foto) -->
                 <div class="flex-1 overflow-y-auto pr-1">
                     <div id="kasirProductGrid" class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3.5">
-                        <!-- Dynamic Product Cards -->
+                        <!-- Dynamic Product Cards with Real Camera Photos -->
                     </div>
                 </div>
             </div>
 
-            <!-- Right Side: Cart / Total Order -->
+            <!-- Right Side: Cart & Order Summary -->
             <div class="w-full md:w-96 bg-white border-l border-slate-200 flex flex-col h-full shadow-xl">
                 <!-- Cart Header -->
                 <div class="p-4 border-b border-slate-100 flex items-center justify-between bg-slate-50">
@@ -202,10 +224,6 @@
                         <div class="flex justify-between text-slate-500">
                             <span>Subtotal</span>
                             <span id="cartSubtotal" class="font-medium text-slate-700">Rp 0</span>
-                        </div>
-                        <div class="flex justify-between text-slate-500">
-                            <span>Pajak (0%)</span>
-                            <span class="font-medium text-slate-700">Rp 0</span>
                         </div>
                         <div class="flex justify-between text-lg font-bold text-slate-900 pt-2 border-t border-slate-200">
                             <span>Total Tagihan</span>
@@ -245,21 +263,17 @@
                 <!-- Stock Header -->
                 <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white p-5 rounded-2xl shadow-sm border border-slate-200">
                     <div>
-                        <h2 class="text-xl font-bold text-slate-900">Manajemen Produk & Stok Live</h2>
-                        <p class="text-xs text-slate-500 mt-0.5">Tambah produk baru dengan scan barcode atau sesuaikan jumlah stok secara langsung</p>
+                        <h2 class="text-xl font-bold text-slate-900">Manajemen Produk & Foto Real Kamera</h2>
+                        <p class="text-xs text-slate-500 mt-0.5">Tambah produk baru menggunakan foto kamera langsung atau pindaian barcode</p>
                     </div>
                     <div class="flex flex-wrap gap-2">
                         <button onclick="openBarcodePrintModal()" class="bg-amber-600 hover:bg-amber-700 text-white px-4 py-2.5 rounded-xl text-xs font-semibold flex items-center space-x-2 shadow-sm transition-all">
                             <i class="fa-solid fa-barcode"></i>
                             <span>Cetak Label Barcode</span>
                         </button>
-                        <button onclick="openLiveCameraScanner('add_product')" class="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2.5 rounded-xl text-xs font-semibold flex items-center space-x-2 shadow-sm transition-all">
-                            <i class="fa-solid fa-camera"></i>
-                            <span>Scan Kamera Tambah Produk</span>
-                        </button>
                         <button onclick="openProductModal()" class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2.5 rounded-xl text-xs font-semibold flex items-center space-x-2 shadow-sm transition-all">
                             <i class="fa-solid fa-plus"></i>
-                            <span>Tambah Manual</span>
+                            <span>Tambah Produk Baru</span>
                         </button>
                     </div>
                 </div>
@@ -278,12 +292,13 @@
                         <table class="w-full text-left text-sm">
                             <thead class="bg-slate-50 text-slate-500 text-xs uppercase font-semibold border-b border-slate-200">
                                 <tr>
-                                    <th class="py-3 px-4">Info Produk</th>
+                                    <th class="py-3 px-4">Foto Real</th>
+                                    <th class="py-3 px-4">Nama Produk</th>
                                     <th class="py-3 px-4">Barcode</th>
                                     <th class="py-3 px-4">Kategori</th>
                                     <th class="py-3 px-4 text-right">Harga Jual</th>
                                     <th class="py-3 px-4 text-center">Jumlah Stok</th>
-                                    <th class="py-3 px-4 text-center">Aksi Cepat</th>
+                                    <th class="py-3 px-4 text-center">Aksi</th>
                                 </tr>
                             </thead>
                             <tbody id="stockTableBody" class="divide-y divide-slate-100">
@@ -301,7 +316,7 @@
                 <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200 flex justify-between items-center">
                     <div>
                         <h2 class="text-xl font-bold text-slate-900">Riwayat Penjualan</h2>
-                        <p class="text-xs text-slate-500">Cetak ulang atau kirim struk transaksi dalam bentuk gambar</p>
+                        <p class="text-xs text-slate-500">Cetak ulang atau bagikan struk transaksi dalam bentuk gambar</p>
                     </div>
                     <div class="text-right">
                         <span class="text-xs text-slate-400 font-medium">Total Penjualan</span>
@@ -320,11 +335,10 @@
             <div class="max-w-4xl mx-auto space-y-6">
                 <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200">
                     <h2 class="text-xl font-bold text-slate-900">Pengaturan Profil Perusahaan</h2>
-                    <p class="text-xs text-slate-500">Informasi ini akan muncul di bagian atas & bawah struk belanja serta tampilan QRIS</p>
+                    <p class="text-xs text-slate-500">Informasi ini akan muncul di header & footer struk serta QRIS</p>
                 </div>
 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <!-- Form Profile Edit -->
                     <form id="companyProfileForm" onsubmit="saveCompanyProfile(event)" class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 space-y-4">
                         <h3 class="font-bold text-slate-800 text-sm border-b border-slate-100 pb-2">Detail Usaha</h3>
 
@@ -377,7 +391,6 @@
                             <div class="flex flex-col items-center justify-center p-4 bg-slate-50 border border-dashed border-slate-300 rounded-xl text-center">
                                 <img id="previewQrImage" src="" alt="QR Pembayaran" class="w-48 h-48 object-contain rounded-lg border bg-white p-2 shadow-sm mb-2">
                                 <span class="text-xs font-semibold text-slate-700" id="previewQrTitle">QRIS Pembayaran Resmi</span>
-                                <span class="text-[10px] text-slate-400">Pindai menggunakan M-Banking / E-Wallet</span>
                             </div>
                         </div>
 
@@ -410,17 +423,15 @@
                 </button>
             </div>
 
-            <p class="text-xs text-slate-500" id="cameraModalSubtitle">Arahkan kamera HP ke kode barcode / QR pada produk.</p>
+            <p class="text-xs text-slate-500" id="cameraModalSubtitle">Arahkan kamera HP ke kode barcode produk.</p>
 
             <!-- Video Camera Viewport Container -->
             <div class="relative bg-black rounded-2xl overflow-hidden min-h-[280px] flex items-center justify-center border-2 border-slate-800 shadow-inner">
-                <!-- Laser Line Effect -->
                 <div class="scan-laser-line"></div>
-                <!-- Camera Feed Container -->
                 <div id="reader" class="w-full"></div>
             </div>
 
-            <!-- Camera Switch Controls for HP -->
+            <!-- Camera Controls -->
             <div class="flex items-center justify-between bg-slate-50 p-2.5 rounded-xl border border-slate-200 text-xs">
                 <span class="text-slate-600 font-semibold" id="cameraStatusText">Kamera Aktif</span>
                 <button onclick="switchCameraFacing()" class="bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-bold px-3 py-1.5 rounded-lg flex items-center space-x-1.5 transition-all">
@@ -439,9 +450,44 @@
         </div>
     </div>
 
-    <!-- MODAL 2: ADD / EDIT PRODUCT -->
+    <!-- MODAL 2: LIVE CAMERA PHOTO CAPTURE FOR REAL PRODUCT -->
+    <div id="productCameraModal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-md z-50 flex items-center justify-center p-3 hidden">
+        <div class="bg-white rounded-3xl max-w-md w-full p-5 shadow-2xl space-y-4 border border-slate-100">
+            <div class="flex justify-between items-center border-b border-slate-100 pb-3">
+                <div class="flex items-center space-x-2">
+                    <i class="fa-solid fa-camera-retro text-indigo-600 text-lg"></i>
+                    <h3 class="font-bold text-slate-900 text-base">Ambil Foto Real Produk</h3>
+                </div>
+                <button onclick="closeProductCameraModal()" class="w-8 h-8 text-slate-400 hover:text-slate-600 rounded-xl flex items-center justify-center bg-slate-100 hover:bg-slate-200">
+                    <i class="fa-solid fa-xmark text-lg"></i>
+                </button>
+            </div>
+
+            <p class="text-xs text-slate-500">Posisikan produk di tengah kamera lalu tekan tombol **Ambil Foto**.</p>
+
+            <!-- Live Camera Feed & Snapshot Preview -->
+            <div class="relative bg-black rounded-2xl overflow-hidden min-h-[280px] flex items-center justify-center border-2 border-slate-800 shadow-inner">
+                <video id="prodCamVideo" autoplay playsinline class="w-full h-64 object-cover"></video>
+                <canvas id="prodCamCanvas" class="hidden"></canvas>
+            </div>
+
+            <!-- Capture Actions -->
+            <div class="flex gap-2">
+                <button onclick="switchProductCameraFacing()" class="bg-slate-100 hover:bg-slate-200 text-slate-700 py-3 px-4 rounded-xl text-xs font-bold flex items-center space-x-1.5">
+                    <i class="fa-solid fa-rotate"></i>
+                    <span>Putar Kamera</span>
+                </button>
+                <button onclick="takeProductPhotoSnapshot()" class="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white py-3 px-4 rounded-xl font-bold text-xs shadow-lg shadow-indigo-600/30 flex items-center justify-center space-x-2 transition-all">
+                    <i class="fa-solid fa-circle-dot text-base"></i>
+                    <span>Ambil Foto Real</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL 3: ADD / EDIT PRODUCT FORM -->
     <div id="productModal" class="fixed inset-0 bg-slate-900/70 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
-        <div class="bg-white rounded-2xl max-w-lg w-full p-6 shadow-2xl space-y-4">
+        <div class="bg-white rounded-2xl max-w-lg w-full p-6 shadow-2xl space-y-4 max-h-[90vh] overflow-y-auto">
             <div class="flex justify-between items-center border-b pb-3">
                 <h3 id="productModalTitle" class="font-bold text-slate-900 text-lg">Tambah Produk Baru</h3>
                 <button onclick="closeModal('productModal')" class="text-slate-400 hover:text-slate-600">
@@ -457,8 +503,8 @@
                     <div class="flex gap-2">
                         <input type="text" id="prodBarcode" required class="flex-1 px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:ring-2 focus:ring-indigo-500 outline-none">
                         <button type="button" onclick="openLiveCameraScanner('form_input')" class="bg-indigo-50 text-indigo-600 border border-indigo-200 px-3 py-2 rounded-xl text-xs font-semibold flex items-center space-x-1 hover:bg-indigo-100">
-                            <i class="fa-solid fa-camera"></i>
-                            <span>Scan Kamera</span>
+                            <i class="fa-solid fa-barcode"></i>
+                            <span>Scan</span>
                         </button>
                     </div>
                 </div>
@@ -489,9 +535,32 @@
                     <input type="number" id="prodPrice" min="0" required class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:ring-2 focus:ring-indigo-500 outline-none">
                 </div>
 
-                <div>
-                    <label class="block text-xs font-semibold text-slate-600 mb-1">URL Gambar Produk (Opsional)</label>
-                    <input type="text" id="prodImage" placeholder="https://..." class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:ring-2 focus:ring-indigo-500 outline-none">
+                <!-- Product Camera Real Photo Capture Box -->
+                <div class="space-y-2 bg-slate-50 p-3 rounded-xl border border-slate-200">
+                    <label class="block text-xs font-semibold text-slate-700">Foto Real Produk (Kamera HP / URL)</label>
+                    
+                    <div class="flex items-center gap-3">
+                        <div class="w-20 h-20 rounded-xl border-2 border-dashed border-slate-300 bg-white flex items-center justify-center overflow-hidden shrink-0 relative">
+                            <img id="prodImagePreview" src="https://placehold.co/100x100/e2e8f0/64748b?text=Foto" class="w-full h-full object-cover">
+                        </div>
+
+                        <div class="flex-1 space-y-2">
+                            <button type="button" onclick="startProductCameraPhoto()" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white px-3 py-2 rounded-xl text-xs font-bold flex items-center justify-center space-x-2 shadow-sm transition-all">
+                                <i class="fa-solid fa-camera"></i>
+                                <span>Buka Kamera HP & Foto</span>
+                            </button>
+
+                            <div class="relative">
+                                <input type="file" id="prodFileInput" accept="image/*" capture="environment" onchange="handleFileImageUpload(event)" class="hidden">
+                                <button type="button" onclick="document.getElementById('prodFileInput').click()" class="w-full bg-slate-200 hover:bg-slate-300 text-slate-700 px-3 py-1.5 rounded-xl text-xs font-semibold flex items-center justify-center space-x-1.5">
+                                    <i class="fa-solid fa-upload"></i>
+                                    <span>Pilih dari Galeri / Kamera HP</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <input type="text" id="prodImage" oninput="updateImagePreviewFromInput()" placeholder="Atau paste URL Gambar https://..." class="w-full px-3 py-1.5 bg-white border border-slate-200 rounded-lg text-[11px] focus:ring-2 focus:ring-indigo-500 outline-none mt-2">
                 </div>
 
                 <div class="pt-3 flex gap-2">
@@ -502,7 +571,7 @@
         </div>
     </div>
 
-    <!-- MODAL 3: RECEIPT PREVIEW & IMAGE EXPORT / SHARE -->
+    <!-- MODAL 4: RECEIPT PREVIEW & IMAGE EXPORT / SHARE -->
     <div id="receiptModal" class="fixed inset-0 bg-slate-900/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
         <div class="bg-white rounded-2xl max-w-sm w-full p-5 shadow-2xl flex flex-col max-h-[90vh]">
             <div class="flex justify-between items-center border-b pb-3 mb-3">
@@ -549,7 +618,7 @@
                 </div>
             </div>
 
-            <!-- Receipt Modal Actions -->
+            <!-- Receipt Actions -->
             <div class="pt-3 border-t border-slate-100 flex flex-col sm:flex-row gap-2">
                 <button onclick="downloadReceiptAsImage()" class="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-700 py-2.5 px-3 rounded-xl font-semibold text-xs flex items-center justify-center space-x-1.5 transition-all">
                     <i class="fa-solid fa-download"></i>
@@ -563,7 +632,7 @@
         </div>
     </div>
 
-    <!-- MODAL 4: BARCODE LABEL PRINT & MASSAL STICKER GENERATOR -->
+    <!-- MODAL 5: BARCODE LABEL PRINT & STICKER GENERATOR -->
     <div id="barcodeModal" class="fixed inset-0 bg-slate-900/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
         <div class="bg-white rounded-2xl max-w-4xl w-full p-5 shadow-2xl flex flex-col max-h-[92vh]">
             <div class="flex justify-between items-center border-b pb-3 mb-3 no-print">
@@ -573,7 +642,7 @@
                     </div>
                     <div>
                         <h3 class="font-bold text-slate-900 text-base">Cetak Label & Stiker Barcode Massal</h3>
-                        <p class="text-xs text-slate-500">Cetak label per produk tunggal atau cetak massal berdasarkan jumlah stok</p>
+                        <p class="text-xs text-slate-500">Cetak label barcode per-produk atau massal berdasarkan stok</p>
                     </div>
                 </div>
                 <button onclick="closeModal('barcodeModal')" class="text-slate-400 hover:text-slate-600">
@@ -582,7 +651,6 @@
             </div>
 
             <div class="space-y-4 flex-1 overflow-y-auto pr-1 no-print">
-                <!-- Mode Switch Header Tabs -->
                 <div class="flex border-b border-slate-200 gap-4">
                     <button id="btnBarcodeModeBulk" onclick="switchBarcodePrintMode('bulk')" class="pb-2 text-xs font-bold border-b-2 border-indigo-600 text-indigo-600 flex items-center space-x-2">
                         <i class="fa-solid fa-layer-group"></i>
@@ -594,7 +662,6 @@
                     </button>
                 </div>
 
-                <!-- Single Mode Barcode Options -->
                 <div id="barcodeSingleControls" class="grid grid-cols-1 sm:grid-cols-3 gap-3 bg-slate-50 p-3 rounded-xl border border-slate-200 hidden">
                     <div>
                         <label class="block text-xs font-semibold text-slate-600 mb-1">Pilih Produk</label>
@@ -615,7 +682,6 @@
                     </div>
                 </div>
 
-                <!-- Bulk Mode Barcode Options -->
                 <div id="barcodeBulkControls" class="space-y-3 bg-slate-50 p-4 rounded-xl border border-slate-200">
                     <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
                         <div>
@@ -623,14 +689,12 @@
                             <select id="barcodeBulkQtyMode" onchange="updateBarcodePreview()" class="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl text-xs focus:ring-2 focus:ring-indigo-500 outline-none font-medium">
                                 <option value="sesuai_stok">Sesuai Jumlah Stok Barang Saat Ini</option>
                                 <option value="satu_per_produk">1 Label per Produk</option>
-                                <option value="custom">Sesuaikan Manual per Produk</option>
                             </select>
                         </div>
                         <div>
                             <label class="block text-xs font-semibold text-slate-600 mb-1">Filter Kategori</label>
                             <select id="barcodeBulkCategory" onchange="updateBarcodePreview()" class="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl text-xs focus:ring-2 focus:ring-indigo-500 outline-none">
                                 <option value="Semua">Semua Kategori</option>
-                                <!-- Dynamic Categories -->
                             </select>
                         </div>
                         <div>
@@ -647,53 +711,22 @@
                             </div>
                         </div>
                     </div>
-
-                    <!-- Custom Checklist Table for Bulk Selection -->
-                    <div id="barcodeBulkCustomTableContainer" class="hidden border border-slate-200 rounded-xl overflow-hidden bg-white max-h-48 overflow-y-auto">
-                        <table class="w-full text-left text-xs">
-                            <thead class="bg-slate-100 text-slate-600 sticky top-0 border-b border-slate-200">
-                                <tr>
-                                    <th class="p-2 text-center w-10">
-                                        <input type="checkbox" id="chkSelectAllBulk" checked onchange="toggleSelectAllBulkBarcodes(this.checked)">
-                                    </th>
-                                    <th class="p-2">Produk</th>
-                                    <th class="p-2">Barcode</th>
-                                    <th class="p-2 text-center">Stok Usaha</th>
-                                    <th class="p-2 text-center w-28">Jumlah Cetak</th>
-                                </tr>
-                            </thead>
-                            <tbody id="barcodeBulkTableBody" class="divide-y divide-slate-100">
-                                <!-- Dynamic rows -->
-                            </tbody>
-                        </table>
-                    </div>
                 </div>
 
-                <!-- Print Sheet Grid Summary Bar -->
                 <div class="flex justify-between items-center bg-indigo-50 p-3 rounded-xl border border-indigo-100 text-xs">
                     <div class="flex items-center space-x-2 text-indigo-900">
                         <i class="fa-solid fa-circle-info text-indigo-500"></i>
                         <span>Ringkasan Cetak: <strong id="barcodeSummaryCount">0 Label</strong> (<strong id="barcodeSummaryProducts">0 Produk</strong>)</span>
                     </div>
-                    <div class="flex items-center space-x-2">
-                        <label class="text-slate-500 text-[11px] font-semibold">Kolom Grid:</label>
-                        <select id="barcodeGridCols" onchange="updateBarcodeGridStyle()" class="px-2 py-1 bg-white border border-indigo-200 rounded-lg text-xs font-semibold text-indigo-700">
-                            <option value="grid-cols-2 sm:grid-cols-3 md:grid-cols-4">4 Kolom (Standar)</option>
-                            <option value="grid-cols-2 sm:grid-cols-3">3 Kolom (Besar)</option>
-                            <option value="grid-cols-3 sm:grid-cols-4 md:grid-cols-5">5 Kolom (Kecil/Compact)</option>
-                        </select>
-                    </div>
                 </div>
             </div>
 
-            <!-- Print Printable Target Grid Area -->
             <div class="my-3 flex-1 overflow-y-auto max-h-[50vh] p-3 border border-slate-200 rounded-xl bg-slate-100">
                 <div id="printableBarcodeArea" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 bg-white p-4 rounded-lg min-h-[200px]">
-                    <!-- Dynamic Barcode Label Cards -->
+                    <!-- Dynamic Barcode Cards -->
                 </div>
             </div>
 
-            <!-- Modal Action Footer Buttons -->
             <div class="pt-3 border-t border-slate-100 flex flex-wrap justify-between items-center gap-2 no-print">
                 <button onclick="downloadSingleBarcodePNG()" class="bg-slate-100 hover:bg-slate-200 text-slate-700 px-4 py-2.5 rounded-xl font-semibold text-xs flex items-center space-x-2 transition-all">
                     <i class="fa-solid fa-download"></i>
@@ -710,14 +743,14 @@
         </div>
     </div>
 
-    <!-- Floating Notification Toast -->
+    <!-- Toast Notification -->
     <div id="toast" class="fixed bottom-5 right-5 z-50 transform translate-y-20 opacity-0 transition-all duration-300 bg-slate-900 text-white px-4 py-3 rounded-xl shadow-2xl flex items-center space-x-3 text-xs font-semibold pointer-events-none">
         <i id="toastIcon" class="fa-solid fa-circle-check text-emerald-400 text-base"></i>
         <span id="toastMsg">Notifikasi</span>
     </div>
 
     <script>
-        // Default Mock State & Data Storage
+        // Default Mock Data
         const DEFAULT_COMPANY_PROFILE = {
             name: "Toko Sembako Berkah",
             tagline: "Lengkap, Murah & Terpercaya",
@@ -735,22 +768,24 @@
             { id: '4', barcode: '899990800004', name: 'Beras Premium 5kg', category: 'Sembako', price: 68000, stock: 8, image: 'https://images.unsplash.com/photo-1586201375761-83865001e31c?w=200' },
         ];
 
-        // Global State Variables
+        // Global State
         let companyProfile = JSON.parse(localStorage.getItem('posku_company')) || DEFAULT_COMPANY_PROFILE;
         let products = JSON.parse(localStorage.getItem('posku_products')) || INITIAL_PRODUCTS;
         let transactions = JSON.parse(localStorage.getItem('posku_transactions')) || [];
         let cart = [];
         let activeCategory = 'Semua';
+        let cashierMode = 'catalog'; // 'catalog' or 'barcode'
         
-        // Live Camera HP State
+        // Barcode Camera State
         let html5Qrcode = null;
-        let currentFacingMode = "environment"; // "environment" for back camera HP, "user" for front
-        let cameraScanMode = 'reduce_stock'; // 'reduce_stock', 'add_product', or 'form_input'
-        let lastScannedCode = null;
-        let lastScanTime = 0;
-        let barcodePrintMode = 'bulk'; // 'bulk' or 'single'
+        let currentFacingMode = "environment";
+        let cameraScanMode = 'reduce_stock';
 
-        // Initialize Application
+        // Real Camera Snapshot State for Product Photo
+        let prodCamStream = null;
+        let prodCamFacingMode = "environment";
+
+        // Initialization
         window.addEventListener('DOMContentLoaded', () => {
             initCompanyProfile();
             renderCategoryFilters();
@@ -767,7 +802,6 @@
             localStorage.setItem('posku_transactions', JSON.stringify(transactions));
         }
 
-        // Play Beep Sound on Barcode Scan
         function playBeep() {
             try {
                 const ctx = new (window.AudioContext || window.webkitAudioContext)();
@@ -783,7 +817,6 @@
             } catch (e) {}
         }
 
-        // Show Toast Notification
         function showToast(msg, type = 'success') {
             const toast = document.getElementById('toast');
             const toastMsg = document.getElementById('toastMsg');
@@ -804,7 +837,6 @@
             }, 3000);
         }
 
-        // Navigation Tab Switching
         function switchTab(tabId) {
             document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
             document.querySelectorAll('.nav-btn').forEach(el => el.classList.remove('bg-slate-800', 'text-white'));
@@ -813,253 +845,257 @@
             document.getElementById(`tab-${tabId}`).classList.add('bg-slate-800', 'text-white');
         }
 
-        // --- LIVE CAMERA HP SCANNER ENGINE ---
+        // Opsi Kasir Mode Switcher (Katalog foto vs Scan Barcode)
+        function setCashierMode(mode) {
+            cashierMode = mode;
+            const btnCat = document.getElementById('btnModeCatalog');
+            const btnBar = document.getElementById('btnModeBarcode');
+            const scanBanner = document.getElementById('cashierScanBanner');
+
+            if (mode === 'catalog') {
+                btnCat.className = "flex-1 sm:flex-none px-4 py-2 rounded-lg text-xs font-bold transition-all flex items-center justify-center space-x-2 bg-indigo-600 text-white shadow-sm";
+                btnBar.className = "flex-1 sm:flex-none px-4 py-2 rounded-lg text-xs font-bold transition-all flex items-center justify-center space-x-2 text-slate-600 hover:text-slate-900";
+                scanBanner.classList.add('hidden');
+                showToast("Mode Katalog Foto Aktif. Silakan pilih barang.", "info");
+            } else {
+                btnBar.className = "flex-1 sm:flex-none px-4 py-2 rounded-lg text-xs font-bold transition-all flex items-center justify-center space-x-2 bg-indigo-600 text-white shadow-sm";
+                btnCat.className = "flex-1 sm:flex-none px-4 py-2 rounded-lg text-xs font-bold transition-all flex items-center justify-center space-x-2 text-slate-600 hover:text-slate-900";
+                scanBanner.classList.remove('hidden');
+                openLiveCameraScanner('reduce_stock');
+            }
+        }
+
+        // Feature 1: Live Real Camera Photo Capture for Products
+        async function startProductCameraPhoto() {
+            const modal = document.getElementById('productCameraModal');
+            modal.classList.remove('hidden');
+
+            const video = document.getElementById('prodCamVideo');
+            try {
+                if (prodCamStream) {
+                    prodCamStream.getTracks().forEach(track => track.stop());
+                }
+                prodCamStream = await navigator.mediaDevices.getUserMedia({
+                    video: { facingMode: prodCamFacingMode, width: { ideal: 640 }, height: { ideal: 640 } }
+                });
+                video.srcObject = prodCamStream;
+            } catch (err) {
+                showToast("Gagal mengakses kamera. Gunakan tombol pilih dari galeri.", "error");
+                closeProductCameraModal();
+            }
+        }
+
+        function switchProductCameraFacing() {
+            prodCamFacingMode = prodCamFacingMode === "environment" ? "user" : "environment";
+            startProductCameraPhoto();
+        }
+
+        function takeProductPhotoSnapshot() {
+            const video = document.getElementById('prodCamVideo');
+            const canvas = document.getElementById('prodCamCanvas');
+            const ctx = canvas.getContext('2d');
+
+            canvas.width = video.videoWidth || 300;
+            canvas.height = video.videoHeight || 300;
+            ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+            const imageDataUrl = canvas.toDataURL('image/jpeg', 0.8);
+            document.getElementById('prodImage').value = imageDataUrl;
+            document.getElementById('prodImagePreview').src = imageDataUrl;
+
+            showToast("Foto real produk berhasil diambil!");
+            closeProductCameraModal();
+        }
+
+        function closeProductCameraModal() {
+            const modal = document.getElementById('productCameraModal');
+            modal.classList.add('hidden');
+            if (prodCamStream) {
+                prodCamStream.getTracks().forEach(track => track.stop());
+                prodCamStream = null;
+            }
+        }
+
+        function handleFileImageUpload(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(evt) {
+                const dataUrl = evt.target.result;
+                document.getElementById('prodImage').value = dataUrl;
+                document.getElementById('prodImagePreview').src = dataUrl;
+                showToast("Foto produk berhasil diunggah!");
+            };
+            reader.readAsDataURL(file);
+        }
+
+        function updateImagePreviewFromInput() {
+            const val = document.getElementById('prodImage').value.trim();
+            const preview = document.getElementById('prodImagePreview');
+            preview.src = val || "https://placehold.co/100x100/e2e8f0/64748b?text=Foto";
+        }
+
+        // Live Camera Scanner Engine
         function openLiveCameraScanner(mode = 'reduce_stock') {
             cameraScanMode = mode;
             const modal = document.getElementById('cameraModal');
             modal.classList.remove('hidden');
 
             const titleEl = document.getElementById('cameraModalTitle');
-            const subEl = document.getElementById('cameraModalSubtitle');
+            if (mode === 'reduce_stock') titleEl.innerText = "Scan Barcode Kasir Kamera HP";
+            else titleEl.innerText = "Scan Barcode Input Form";
 
-            if (mode === 'reduce_stock') {
-                titleEl.innerText = "Scan Barang Kamera HP (Kasir)";
-                subEl.innerText = "Arahkan kamera ke barcode barang untuk memasukkan ke keranjang";
-            } else if (mode === 'add_product') {
-                titleEl.innerText = "Scan Kamera Tambah Produk";
-                subEl.innerText = "Pindai barcode untuk menambah stok (+1) atau mendaftarkan barang baru";
-            } else if (mode === 'form_input') {
-                titleEl.innerText = "Scan Form Input Barcode";
-                subEl.innerText = "Pindai barcode untuk mengisi otomatis kolom formulir barang";
-            }
-
-            startCameraScanner();
+            startBarcodeScannerEngine();
         }
 
-        function startCameraScanner() {
+        function startBarcodeScannerEngine() {
             if (html5Qrcode) {
-                try {
-                    html5Qrcode.stop().then(() => {
-                        initHtml5Qrcode();
-                    }).catch(() => {
-                        initHtml5Qrcode();
-                    });
-                    return;
-                } catch(e) {}
+                html5Qrcode.stop().then(() => initHtml5QrcodeInstance()).catch(() => initHtml5QrcodeInstance());
+            } else {
+                initHtml5QrcodeInstance();
             }
-            initHtml5Qrcode();
         }
 
-        function initHtml5Qrcode() {
+        function initHtml5QrcodeInstance() {
             html5Qrcode = new Html5Qrcode("reader");
-            const config = { 
-                fps: 15, 
-                qrbox: { width: 250, height: 180 },
-                aspectRatio: 1.0,
-                experimentalFeatures: {
-                    useBarCodeDetectorIfSupported: true
-                }
-            };
-
-            const statusText = document.getElementById('cameraStatusText');
-            statusText.innerText = currentFacingMode === 'environment' ? 'Kamera Belakang Aktif' : 'Kamera Depan Aktif';
+            const config = { fps: 15, qrbox: { width: 250, height: 180 } };
 
             html5Qrcode.start(
                 { facingMode: currentFacingMode },
                 config,
-                onScanSuccess,
-                onScanError
+                onBarcodeDetectedSuccess
             ).catch(err => {
-                console.warn("Camera start failed for mode:", currentFacingMode, err);
-                // Fallback attempt
-                if (currentFacingMode === "environment") {
-                    html5Qrcode.start({ facingMode: "user" }, config, onScanSuccess, onScanError)
-                        .catch(e => showToast("Gagal membuka kamera HP. Pastikan izin kamera diberikan.", "error"));
-                } else {
-                    showToast("Gagal mengakses kamera. Silakan periksa izin browser.", "error");
-                }
+                document.getElementById('cameraStatusText').innerText = "Gagal Membuka Kamera HP";
             });
         }
 
         function switchCameraFacing() {
-            currentFacingMode = (currentFacingMode === "environment") ? "user" : "environment";
-            startCameraScanner();
+            currentFacingMode = currentFacingMode === "environment" ? "user" : "environment";
+            startBarcodeScannerEngine();
         }
 
-        function closeCameraModal() {
-            if (html5Qrcode) {
-                try {
-                    html5Qrcode.stop().then(() => {
-                        document.getElementById('cameraModal').classList.add('hidden');
-                    }).catch(() => {
-                        document.getElementById('cameraModal').classList.add('hidden');
-                    });
-                } catch(e) {
-                    document.getElementById('cameraModal').classList.add('hidden');
-                }
-            } else {
-                document.getElementById('cameraModal').classList.add('hidden');
-            }
-        }
-
-        function onScanError(errorMessage) {
-            // Ignore frame scan errors
-        }
-
-        function onScanSuccess(decodedText, decodedResult) {
-            const now = Date.now();
-            // Debounce duplicate scans within 1.5 seconds
-            if (decodedText === lastScannedCode && (now - lastScanTime) < 1500) {
-                return;
-            }
-            lastScannedCode = decodedText;
-            lastScanTime = now;
-
+        function onBarcodeDetectedSuccess(decodedText) {
             playBeep();
-
             if (cameraScanMode === 'reduce_stock') {
-                const product = products.find(p => p.barcode === decodedText);
+                const product = products.find(p => p.barcode === decodedText.trim());
                 if (product) {
                     addToCart(product.id);
-                    showToast(`Ter-scan: ${product.name}`);
+                    showToast(`+ ${product.name} ditambahkan ke keranjang`);
                 } else {
-                    showToast(`Produk dengan barcode ${decodedText} tidak ditemukan!`, 'error');
-                }
-            } else if (cameraScanMode === 'add_product') {
-                const product = products.find(p => p.barcode === decodedText);
-                if (product) {
-                    product.stock += 1;
-                    saveProductsToStorage();
-                    renderStockTable();
-                    renderKasirProducts();
-                    showToast(`Stok ${product.name} bertambah (+1) menjadi ${product.stock}`);
-                } else {
-                    showToast(`Produk baru terdeteksi! Membuka form pendaftaran...`, 'info');
-                    closeCameraModal();
-                    openProductModalWithBarcode(decodedText);
+                    showToast(`Barcode ${decodedText} tidak ditemukan!`, 'error');
                 }
             } else if (cameraScanMode === 'form_input') {
                 document.getElementById('prodBarcode').value = decodedText;
-                showToast(`Barcode ${decodedText} berhasil dimasukkan!`);
+                showToast(`Barcode ${decodedText} dimasukkan ke form`);
                 closeCameraModal();
             }
         }
 
         function submitManualBarcode() {
             const val = document.getElementById('manualBarcodeScan').value.trim();
-            if (!val) return;
-            onScanSuccess(val, null);
+            if (val) onBarcodeDetectedSuccess(val);
             document.getElementById('manualBarcodeScan').value = '';
         }
 
-        // --- PROFIL PERUSAHAAN LOGIC ---
-        function initCompanyProfile() {
-            document.getElementById('navCompanyName').innerText = companyProfile.name;
-            
-            document.getElementById('profName').value = companyProfile.name;
-            document.getElementById('profTagline').value = companyProfile.tagline || '';
-            document.getElementById('profPhone').value = companyProfile.phone || '';
-            document.getElementById('profAddress').value = companyProfile.address || '';
-            document.getElementById('profFooter').value = companyProfile.footerMsg || '';
-            document.getElementById('profLogo').value = companyProfile.logoUrl || '';
-            document.getElementById('profQrCode').value = companyProfile.qrisUrl || '';
-
-            document.getElementById('previewQrImage').src = companyProfile.qrisUrl || 'https://via.placeholder.com/200?text=No+QRIS';
-            document.getElementById('prevHeaderName').innerText = companyProfile.name;
-            document.getElementById('prevHeaderTagline').innerText = companyProfile.tagline;
-            document.getElementById('prevHeaderAddress').innerText = companyProfile.address;
-            document.getElementById('prevHeaderPhone').innerText = "Telp: " + companyProfile.phone;
+        function closeCameraModal() {
+            if (html5Qrcode) {
+                html5Qrcode.stop().then(() => {
+                    document.getElementById('cameraModal').classList.add('hidden');
+                }).catch(() => {
+                    document.getElementById('cameraModal').classList.add('hidden');
+                });
+            } else {
+                document.getElementById('cameraModal').classList.add('hidden');
+            }
         }
 
-        function saveCompanyProfile(e) {
-            e.preventDefault();
-            companyProfile = {
-                name: document.getElementById('profName').value,
-                tagline: document.getElementById('profTagline').value,
-                phone: document.getElementById('profPhone').value,
-                address: document.getElementById('profAddress').value,
-                footerMsg: document.getElementById('profFooter').value,
-                logoUrl: document.getElementById('profLogo').value,
-                qrisUrl: document.getElementById('profQrCode').value,
-            };
-
-            localStorage.setItem('posku_company', JSON.stringify(companyProfile));
-            initCompanyProfile();
-            showToast('Profil Perusahaan Berhasil Diperbarui!');
-        }
-
-        // --- KASIR & PENJUALAN LOGIC ---
-        function renderCategoryFilters() {
-            const categories = ['Semua', ...new Set(products.map(p => p.category))];
-            const container = document.getElementById('categoryFilterContainer');
-            container.innerHTML = categories.map(cat => `
-                <button onclick="setCategory('${cat}')" class="px-3.5 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition-all ${activeCategory === cat ? 'bg-indigo-600 text-white shadow-sm' : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-50'}">
-                    ${cat}
-                </button>
-            `).join('');
-        }
-
-        function setCategory(cat) {
-            activeCategory = cat;
-            renderCategoryFilters();
-            renderKasirProducts();
-        }
-
+        // Render Kasir Products Grid
         function renderKasirProducts() {
-            const query = document.getElementById('kasirSearch').value.toLowerCase();
             const grid = document.getElementById('kasirProductGrid');
+            const search = document.getElementById('kasirSearch').value.toLowerCase();
+            grid.innerHTML = '';
 
             const filtered = products.filter(p => {
                 const matchCategory = activeCategory === 'Semua' || p.category === activeCategory;
-                const matchQuery = p.name.toLowerCase().includes(query) || p.barcode.includes(query);
-                return matchCategory && matchQuery;
+                const matchSearch = p.name.toLowerCase().includes(search) || p.barcode.toLowerCase().includes(search);
+                return matchCategory && matchSearch;
             });
 
             if (filtered.length === 0) {
-                grid.innerHTML = `<div class="col-span-full py-10 text-center text-slate-400 text-xs">Produk tidak ditemukan</div>`;
+                grid.innerHTML = `
+                    <div class="col-span-full py-10 text-center text-slate-400">
+                        <i class="fa-solid fa-box-open text-4xl mb-2"></i>
+                        <p class="text-xs font-semibold">Tidak ada produk ditemukan</p>
+                    </div>`;
                 return;
             }
 
-            grid.innerHTML = filtered.map(p => `
-                <div onclick="addToCart('${p.id}')" class="bg-white rounded-2xl border border-slate-200 overflow-hidden hover:border-indigo-500 hover:shadow-md transition-all cursor-pointer flex flex-col justify-between group active:scale-98">
-                    <div class="p-3">
-                        <div class="w-full h-24 rounded-xl bg-slate-100 overflow-hidden mb-2">
-                            <img src="${p.image || 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=200'}" class="w-full h-full object-cover group-hover:scale-105 transition-transform" onerror="this.src='https://via.placeholder.com/150?text=Produk'">
+            filtered.forEach(p => {
+                const isOutOfStock = p.stock <= 0;
+                const card = document.createElement('div');
+                card.className = `bg-white rounded-2xl p-3 border border-slate-200 shadow-sm flex flex-col justify-between transition-all ${isOutOfStock ? 'opacity-60' : 'hover:shadow-md hover:border-indigo-200'}`;
+                
+                card.innerHTML = `
+                    <div class="space-y-2">
+                        <div class="w-full h-28 rounded-xl bg-slate-100 overflow-hidden relative border border-slate-100">
+                            <img src="${p.image || 'https://placehold.co/200x200/e2e8f0/64748b?text=Foto'}" class="w-full h-full object-cover">
+                            <span class="absolute top-2 right-2 bg-slate-900/80 backdrop-blur-sm text-white px-2 py-0.5 rounded-md text-[10px] font-bold">
+                                Stok: ${p.stock}
+                            </span>
                         </div>
-                        <span class="text-[10px] uppercase tracking-wider font-bold text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded-md">${p.category}</span>
-                        <h3 class="font-bold text-slate-800 text-xs mt-1.5 line-clamp-1">${p.name}</h3>
-                        <p class="text-[10px] text-slate-400">BC: ${p.barcode}</p>
+                        <div>
+                            <span class="text-[10px] font-bold text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded-md">${p.category}</span>
+                            <h3 class="font-bold text-slate-800 text-xs mt-1 line-clamp-1">${p.name}</h3>
+                            <p class="text-[10px] text-slate-400 font-mono">${p.barcode}</p>
+                        </div>
                     </div>
-                    <div class="p-3 bg-slate-50 border-t border-slate-100 flex items-center justify-between">
-                        <span class="font-bold text-slate-900 text-xs">Rp ${p.price.toLocaleString('id-ID')}</span>
-                        <span class="text-[10px] font-semibold px-2 py-0.5 rounded-full ${p.stock > 5 ? 'bg-emerald-100 text-emerald-700' : 'bg-rose-100 text-rose-700'}">
-                            Stok: ${p.stock}
-                        </span>
+                    <div class="mt-3 pt-2 border-t border-slate-100 flex items-center justify-between">
+                        <span class="font-extrabold text-slate-900 text-xs">Rp ${p.price.toLocaleString('id-ID')}</span>
+                        <button onclick="addToCart('${p.id}')" ${isOutOfStock ? 'disabled' : ''} class="bg-indigo-600 hover:bg-indigo-700 disabled:bg-slate-300 text-white px-2.5 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center space-x-1">
+                            <i class="fa-solid fa-plus"></i>
+                            <span>Beli</span>
+                        </button>
                     </div>
-                </div>
-            `).join('');
+                `;
+                grid.appendChild(card);
+            });
         }
 
+        function renderCategoryFilters() {
+            const categories = ['Semua', ...new Set(products.map(p => p.category))];
+            const container = document.getElementById('categoryFilterContainer');
+            container.innerHTML = '';
+
+            categories.forEach(cat => {
+                const btn = document.createElement('button');
+                btn.onclick = () => {
+                    activeCategory = cat;
+                    renderCategoryFilters();
+                    renderKasirProducts();
+                };
+                btn.className = `px-3 rounded-xl text-xs font-semibold py-2 whitespace-nowrap transition-all ${activeCategory === cat ? 'bg-indigo-600 text-white shadow-sm' : 'bg-white border border-slate-200 text-slate-600 hover:bg-slate-50'}`;
+                btn.innerText = cat;
+                container.appendChild(btn);
+            });
+        }
+
+        // Cart Operations
         function addToCart(productId) {
             const product = products.find(p => p.id === productId);
-            if (!product) return;
-
-            if (product.stock <= 0) {
-                showToast('Stok barang habis!', 'error');
-                return;
-            }
+            if (!product || product.stock <= 0) return;
 
             const existing = cart.find(item => item.id === productId);
             if (existing) {
-                if (existing.qty + 1 > product.stock) {
-                    showToast('Stok tidak mencukupi!', 'error');
+                if (existing.qty < product.stock) {
+                    existing.qty += 1;
+                } else {
+                    showToast("Mencapai batas stok produk!", "error");
                     return;
                 }
-                existing.qty++;
             } else {
                 cart.push({ ...product, qty: 1 });
             }
-
             renderCart();
         }
 
@@ -1068,17 +1104,16 @@
             if (!item) return;
 
             const product = products.find(p => p.id === productId);
-
             item.qty += delta;
+
             if (item.qty > product.stock) {
                 item.qty = product.stock;
-                showToast('Mencapai batas stok tersedia!', 'info');
+                showToast("Stok tidak mencukupi", "error");
             }
 
             if (item.qty <= 0) {
                 cart = cart.filter(i => i.id !== productId);
             }
-
             renderCart();
         }
 
@@ -1088,239 +1123,135 @@
         }
 
         function renderCart() {
-            const container = document.getElementById('cartItemsList');
-            const subtotalEl = document.getElementById('cartSubtotal');
-            const totalEl = document.getElementById('cartTotal');
+            const list = document.getElementById('cartItemsList');
+            list.innerHTML = '';
+            let total = 0;
 
             if (cart.length === 0) {
-                container.innerHTML = `
-                    <div class="text-center py-12 text-slate-400 space-y-2">
-                        <i class="fa-solid fa-basket-shopping text-3xl opacity-40"></i>
-                        <p class="text-xs">Keranjang belanja kosong</p>
-                    </div>
-                `;
-                subtotalEl.innerText = "Rp 0";
-                totalEl.innerText = "Rp 0";
-                return;
+                list.innerHTML = `
+                    <div class="h-48 flex flex-col items-center justify-center text-slate-400">
+                        <i class="fa-solid fa-basket-shopping text-3xl mb-2"></i>
+                        <p class="text-xs">Keranjang masih kosong</p>
+                    </div>`;
+            } else {
+                cart.forEach(item => {
+                    const subtotal = item.price * item.qty;
+                    total += subtotal;
+
+                    const row = document.createElement('div');
+                    row.className = 'flex items-center justify-between p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs';
+                    row.innerHTML = `
+                        <div class="flex-1 pr-2">
+                            <h4 class="font-bold text-slate-800 line-clamp-1">${item.name}</h4>
+                            <span class="text-[10px] text-slate-500">Rp ${item.price.toLocaleString('id-ID')}</span>
+                        </div>
+                        <div class="flex items-center space-x-2">
+                            <button onclick="updateCartQty('${item.id}', -1)" class="w-6 h-6 rounded-lg bg-white border border-slate-200 text-slate-700 font-bold hover:bg-slate-100 flex items-center justify-center">-</button>
+                            <span class="font-bold text-slate-800 w-4 text-center">${item.qty}</span>
+                            <button onclick="updateCartQty('${item.id}', 1)" class="w-6 h-6 rounded-lg bg-white border border-slate-200 text-slate-700 font-bold hover:bg-slate-100 flex items-center justify-center">+</button>
+                        </div>
+                    `;
+                    list.appendChild(row);
+                });
             }
 
-            let subtotal = 0;
-            container.innerHTML = cart.map(item => {
-                const itemTotal = item.price * item.qty;
-                subtotal += itemTotal;
-                return `
-                    <div class="flex items-center justify-between p-2.5 bg-slate-50 border border-slate-200 rounded-xl">
-                        <div class="flex-1 pr-2">
-                            <h4 class="font-bold text-slate-800 text-xs line-clamp-1">${item.name}</h4>
-                            <span class="text-[10px] text-slate-500">Rp ${item.price.toLocaleString('id-ID')} x ${item.qty}</span>
-                        </div>
-                        <div class="flex items-center space-x-1.5">
-                            <button onclick="updateCartQty('${item.id}', -1)" class="w-6 h-6 rounded-lg bg-white border border-slate-300 text-slate-600 font-bold text-xs flex items-center justify-center hover:bg-slate-100">-</button>
-                            <span class="text-xs font-bold w-5 text-center">${item.qty}</span>
-                            <button onclick="updateCartQty('${item.id}', 1)" class="w-6 h-6 rounded-lg bg-white border border-slate-300 text-slate-600 font-bold text-xs flex items-center justify-center hover:bg-slate-100">+</button>
-                        </div>
-                    </div>
-                `;
-            }).join('');
-
-            subtotalEl.innerText = `Rp ${subtotal.toLocaleString('id-ID')}`;
-            totalEl.innerText = `Rp ${subtotal.toLocaleString('id-ID')}`;
+            document.getElementById('cartSubtotal').innerText = `Rp ${total.toLocaleString('id-ID')}`;
+            document.getElementById('cartTotal').innerText = `Rp ${total.toLocaleString('id-ID')}`;
         }
 
-        // Checkout Process & Receipt
+        // Checkout Process
         function processCheckout() {
             if (cart.length === 0) {
-                showToast('Keranjang belanja masih kosong!', 'error');
+                showToast("Keranjang belanja masih kosong!", "error");
                 return;
             }
 
-            const method = document.querySelector('input[name="paymentMethod"]:checked').value;
             const total = cart.reduce((acc, item) => acc + (item.price * item.qty), 0);
+            const paymentMethod = document.querySelector('input[name="paymentMethod"]:checked').value;
             const txId = 'INV-' + Date.now().toString().slice(-6);
 
-            // Deduct Stocks
+            // Deduct Stock
             cart.forEach(item => {
-                const product = products.find(p => p.id === item.id);
-                if (product) {
-                    product.stock -= item.qty;
-                }
+                const prod = products.find(p => p.id === item.id);
+                if (prod) prod.stock -= item.qty;
             });
-            saveProductsToStorage();
 
-            // Record Transaction
-            const txData = {
+            const transaction = {
                 id: txId,
                 date: new Date().toLocaleString('id-ID'),
-                method: method,
                 items: [...cart],
-                total: total
+                total: total,
+                method: paymentMethod
             };
-            transactions.unshift(txData);
+
+            transactions.unshift(transaction);
+            saveProductsToStorage();
             saveTransactionsToStorage();
 
-            // Render Receipt Modal
-            renderReceipt(txData);
-
-            // Reset
-            cart = [];
-            renderCart();
             renderKasirProducts();
             renderStockTable();
             renderTransactions();
 
-            showToast('Transaksi Berhasil Selesai!');
+            showReceiptModal(transaction);
+            clearCart();
+            showToast("Transaksi Berhasil!");
         }
 
-        function renderReceipt(tx) {
-            document.getElementById('rcpCompName').innerText = companyProfile.name;
-            document.getElementById('rcpTagline').innerText = companyProfile.tagline || '';
-            document.getElementById('rcpAddress').innerText = companyProfile.address || '';
-            document.getElementById('rcpPhone').innerText = companyProfile.phone ? "Telp: " + companyProfile.phone : '';
-            document.getElementById('rcpFooterMsg').innerText = companyProfile.footerMsg || 'Terima kasih atas kunjungan Anda!';
-
-            if (companyProfile.logoUrl) {
-                const logoImg = document.getElementById('rcpLogo');
-                logoImg.src = companyProfile.logoUrl;
-                logoImg.classList.remove('hidden');
-            }
-
-            document.getElementById('rcpTxId').innerText = tx.id;
-            document.getElementById('rcpDate').innerText = tx.date;
-            document.getElementById('rcpMethod').innerText = tx.method;
-            document.getElementById('rcpTotalAmount').innerText = `Rp ${tx.total.toLocaleString('id-ID')}`;
-
-            const itemsContainer = document.getElementById('rcpItemsList');
-            itemsContainer.innerHTML = tx.items.map(i => `
-                <div class="flex justify-between items-start text-[11px]">
-                    <div class="flex-1">
-                        <p class="font-bold text-slate-800">${i.name}</p>
-                        <p class="text-slate-500">${i.qty} x Rp ${i.price.toLocaleString('id-ID')}</p>
-                    </div>
-                    <span class="font-bold text-slate-800">Rp ${(i.qty * i.price).toLocaleString('id-ID')}</span>
-                </div>
-            `).join('');
-
-            const qrSection = document.getElementById('rcpQrSection');
-            if (tx.method.includes('QR') && companyProfile.qrisUrl) {
-                document.getElementById('rcpQrImage').src = companyProfile.qrisUrl;
-                qrSection.classList.remove('hidden');
-            } else {
-                qrSection.classList.add('hidden');
-            }
-
-            document.getElementById('receiptModal').classList.remove('hidden');
-        }
-
-        function downloadReceiptAsImage() {
-            const area = document.getElementById('receiptRenderArea');
-            html2canvas(area, { scale: 2 }).then(canvas => {
-                const link = document.createElement('a');
-                link.download = `Struk-${Date.now()}.png`;
-                link.href = canvas.toDataURL('image/png');
-                link.click();
-                showToast('Gambar struk berhasil diunduh!');
-            });
-        }
-
-        function shareReceiptImage() {
-            const area = document.getElementById('receiptRenderArea');
-            html2canvas(area, { scale: 2 }).then(canvas => {
-                canvas.toBlob(blob => {
-                    const file = new File([blob], 'Struk-Belanja.png', { type: 'image/png' });
-                    if (navigator.share && navigator.canShare({ files: [file] })) {
-                        navigator.share({
-                            files: [file],
-                            title: 'Struk Pembayaran',
-                            text: 'Berikut adalah struk transaksi pembayaran Anda.'
-                        }).catch(() => {});
-                    } else {
-                        showToast('Fitur berbagi tidak didukung di peramban ini. Mengunduh gambar...', 'info');
-                        downloadReceiptAsImage();
-                    }
-                });
-            });
-        }
-
-        // --- MANAJEMEN STOK & PRODUK ---
+        // Render Stock Table
         function renderStockTable() {
-            const query = document.getElementById('stokSearch').value.toLowerCase();
             const tbody = document.getElementById('stockTableBody');
+            const search = document.getElementById('stokSearch').value.toLowerCase();
+            tbody.innerHTML = '';
 
-            const filtered = products.filter(p => p.name.toLowerCase().includes(query) || p.barcode.includes(query));
+            const filtered = products.filter(p => p.name.toLowerCase().includes(search) || p.barcode.toLowerCase().includes(search));
             document.getElementById('stockSummaryText').innerText = `Total ${filtered.length} Produk`;
 
-            if (filtered.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="6" class="text-center py-8 text-slate-400 text-xs">Tidak ada data produk</td></tr>`;
-                return;
-            }
-
-            tbody.innerHTML = filtered.map(p => `
-                <tr class="hover:bg-slate-50 transition-colors">
-                    <td class="py-3 px-4 flex items-center space-x-3">
-                        <img src="${p.image || 'https://via.placeholder.com/50'}" class="w-9 h-9 rounded-lg object-cover border">
-                        <div>
-                            <p class="font-bold text-slate-800 text-xs">${p.name}</p>
-                            <span class="text-[10px] text-slate-400">ID: #${p.id}</span>
-                        </div>
+            filtered.forEach(p => {
+                const tr = document.createElement('tr');
+                tr.className = 'hover:bg-slate-50 transition-all';
+                tr.innerHTML = `
+                    <td class="py-3 px-4">
+                        <img src="${p.image || 'https://placehold.co/100x100/e2e8f0/64748b?text=Foto'}" class="w-10 h-10 rounded-lg object-cover border border-slate-200">
                     </td>
-                    <td class="py-3 px-4 font-mono text-xs font-semibold text-slate-700">${p.barcode}</td>
-                    <td class="py-3 px-4"><span class="bg-slate-100 text-slate-600 px-2 py-0.5 rounded text-[10px] font-semibold">${p.category}</span></td>
-                    <td class="py-3 px-4 text-right font-bold text-slate-800 text-xs">Rp ${p.price.toLocaleString('id-ID')}</td>
+                    <td class="py-3 px-4 font-bold text-slate-800">${p.name}</td>
+                    <td class="py-3 px-4 font-mono text-xs text-slate-500">${p.barcode}</td>
+                    <td class="py-3 px-4"><span class="bg-indigo-50 text-indigo-600 px-2 py-0.5 rounded text-[11px] font-semibold">${p.category}</span></td>
+                    <td class="py-3 px-4 text-right font-bold text-slate-900">Rp ${p.price.toLocaleString('id-ID')}</td>
                     <td class="py-3 px-4 text-center">
-                        <div class="flex items-center justify-center space-x-1.5">
-                            <button onclick="quickAdjustStock('${p.id}', -1)" class="w-6 h-6 rounded bg-slate-100 hover:bg-slate-200 font-bold text-xs">-</button>
-                            <span class="font-bold text-xs px-2 ${p.stock <= 5 ? 'text-rose-600' : 'text-slate-800'}">${p.stock}</span>
-                            <button onclick="quickAdjustStock('${p.id}', 1)" class="w-6 h-6 rounded bg-slate-100 hover:bg-slate-200 font-bold text-xs">+</button>
-                        </div>
+                        <span class="font-bold ${p.stock <= 5 ? 'text-rose-600 bg-rose-50' : 'text-emerald-600 bg-emerald-50'} px-2.5 py-1 rounded-lg text-xs">
+                            ${p.stock}
+                        </span>
                     </td>
-                    <td class="py-3 px-4 text-center">
-                        <button onclick="editProduct('${p.id}')" class="text-indigo-600 hover:text-indigo-800 p-1 font-semibold text-xs mr-2">
-                            <i class="fa-solid fa-pen-to-square"></i> Edit
-                        </button>
-                        <button onclick="deleteProduct('${p.id}')" class="text-rose-500 hover:text-rose-700 p-1 font-semibold text-xs">
-                            <i class="fa-solid fa-trash"></i> Hapus
-                        </button>
+                    <td class="py-3 px-4 text-center space-x-1">
+                        <button onclick="editProduct('${p.id}')" class="text-indigo-600 hover:text-indigo-800 p-1.5"><i class="fa-solid fa-pen-to-square"></i></button>
+                        <button onclick="deleteProduct('${p.id}')" class="text-rose-600 hover:text-rose-800 p-1.5"><i class="fa-solid fa-trash"></i></button>
                     </td>
-                </tr>
-            `).join('');
+                `;
+                tbody.appendChild(tr);
+            });
         }
 
-        function quickAdjustStock(id, delta) {
-            const product = products.find(p => p.id === id);
-            if (!product) return;
-
-            product.stock += delta;
-            if (product.stock < 0) product.stock = 0;
-            saveProductsToStorage();
-            renderStockTable();
-            renderKasirProducts();
-        }
-
-        function openProductModal() {
+        function openProductModal(id = null) {
             document.getElementById('productForm').reset();
             document.getElementById('prodId').value = '';
-            document.getElementById('productModalTitle').innerText = 'Tambah Produk Baru';
-            document.getElementById('productModal').classList.remove('hidden');
-        }
+            document.getElementById('prodImagePreview').src = "https://placehold.co/100x100/e2e8f0/64748b?text=Foto";
 
-        function openProductModalWithBarcode(bc) {
-            openProductModal();
-            document.getElementById('prodBarcode').value = bc;
-        }
-
-        function editProduct(id) {
-            const product = products.find(p => p.id === id);
-            if (!product) return;
-
-            document.getElementById('prodId').value = product.id;
-            document.getElementById('prodBarcode').value = product.barcode;
-            document.getElementById('prodName').value = product.name;
-            document.getElementById('prodCategory').value = product.category;
-            document.getElementById('prodStock').value = product.stock;
-            document.getElementById('prodPrice').value = product.price;
-            document.getElementById('prodImage').value = product.image || '';
-
-            document.getElementById('productModalTitle').innerText = 'Edit Produk';
+            if (id) {
+                const prod = products.find(p => p.id === id);
+                if (prod) {
+                    document.getElementById('productModalTitle').innerText = "Edit Produk";
+                    document.getElementById('prodId').value = prod.id;
+                    document.getElementById('prodBarcode').value = prod.barcode;
+                    document.getElementById('prodName').value = prod.name;
+                    document.getElementById('prodCategory').value = prod.category;
+                    document.getElementById('prodStock').value = prod.stock;
+                    document.getElementById('prodPrice').value = prod.price;
+                    document.getElementById('prodImage').value = prod.image || '';
+                    document.getElementById('prodImagePreview').src = prod.image || "https://placehold.co/100x100/e2e8f0/64748b?text=Foto";
+                }
+            } else {
+                document.getElementById('productModalTitle').innerText = "Tambah Produk Baru";
+            }
             document.getElementById('productModal').classList.remove('hidden');
         }
 
@@ -1330,85 +1261,193 @@
             const barcode = document.getElementById('prodBarcode').value.trim();
             const name = document.getElementById('prodName').value.trim();
             const category = document.getElementById('prodCategory').value;
-            const stock = parseInt(document.getElementById('prodStock').value) || 0;
-            const price = parseInt(document.getElementById('prodPrice').value) || 0;
+            const stock = parseInt(document.getElementById('prodStock').value);
+            const price = parseInt(document.getElementById('prodPrice').value);
             const image = document.getElementById('prodImage').value.trim();
 
             if (id) {
-                const product = products.find(p => p.id === id);
-                if (product) {
-                    product.barcode = barcode;
-                    product.name = name;
-                    product.category = category;
-                    product.stock = stock;
-                    product.price = price;
-                    product.image = image;
+                const idx = products.findIndex(p => p.id === id);
+                if (idx !== -1) {
+                    products[idx] = { id, barcode, name, category, stock, price, image };
                 }
             } else {
-                products.push({
-                    id: Date.now().toString(),
-                    barcode, name, category, stock, price, image
-                });
+                products.push({ id: Date.now().toString(), barcode, name, category, stock, price, image });
             }
 
             saveProductsToStorage();
-            closeModal('productModal');
-            renderCategoryFilters();
             renderKasirProducts();
             renderStockTable();
-            showToast('Produk berhasil disimpan!');
+            renderCategoryFilters();
+            closeModal('productModal');
+            showToast("Produk berhasil disimpan!");
         }
 
         function deleteProduct(id) {
-            if (confirm('Yakin ingin menghapus produk ini?')) {
-                products = products.filter(p => p.id !== id);
-                saveProductsToStorage();
-                renderCategoryFilters();
-                renderKasirProducts();
-                renderStockTable();
-                showToast('Produk telah dihapus.', 'info');
-            }
+            products = products.filter(p => p.id !== id);
+            saveProductsToStorage();
+            renderKasirProducts();
+            renderStockTable();
+            showToast("Produk berhasil dihapus!");
         }
 
-        // --- BARCODE LABEL MASSAL GENERATOR ---
+        function renderTransactions() {
+            const container = document.getElementById('transactionList');
+            container.innerHTML = '';
+            let revenue = 0;
+
+            transactions.forEach(tx => {
+                revenue += tx.total;
+                const card = document.createElement('div');
+                card.className = 'bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3';
+                card.innerHTML = `
+                    <div>
+                        <div class="flex items-center space-x-2">
+                            <span class="font-bold text-slate-800 text-sm">${tx.id}</span>
+                            <span class="bg-indigo-50 text-indigo-600 px-2 py-0.5 rounded text-[10px] font-bold">${tx.method}</span>
+                        </div>
+                        <p class="text-xs text-slate-400 mt-0.5">${tx.date} • ${tx.items.length} Barang</p>
+                    </div>
+                    <div class="flex items-center space-x-4">
+                        <span class="font-extrabold text-slate-900 text-base">Rp ${tx.total.toLocaleString('id-ID')}</span>
+                        <button onclick='showReceiptModal(${JSON.stringify(tx)})' class="bg-slate-100 hover:bg-slate-200 text-slate-700 px-3 py-1.5 rounded-xl text-xs font-bold flex items-center space-x-1">
+                            <i class="fa-solid fa-receipt"></i>
+                            <span>Lihat Struk</span>
+                        </button>
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+
+            document.getElementById('totalRevenueText').innerText = `Rp ${revenue.toLocaleString('id-ID')}`;
+        }
+
+        function showReceiptModal(tx) {
+            document.getElementById('rcpCompName').innerText = companyProfile.name;
+            document.getElementById('rcpTagline').innerText = companyProfile.tagline;
+            document.getElementById('rcpAddress').innerText = companyProfile.address;
+            document.getElementById('rcpPhone').innerText = companyProfile.phone;
+            document.getElementById('rcpFooterMsg').innerText = companyProfile.footerMsg;
+
+            document.getElementById('rcpTxId').innerText = tx.id;
+            document.getElementById('rcpDate').innerText = tx.date;
+            document.getElementById('rcpMethod').innerText = tx.method;
+            document.getElementById('rcpTotalAmount').innerText = `Rp ${tx.total.toLocaleString('id-ID')}`;
+
+            const itemsList = document.getElementById('rcpItemsList');
+            itemsList.innerHTML = '';
+            tx.items.forEach(item => {
+                const div = document.createElement('div');
+                div.className = 'flex justify-between text-[11px]';
+                div.innerHTML = `
+                    <span>${item.name} x${item.qty}</span>
+                    <span class="font-bold">Rp ${(item.price * item.qty).toLocaleString('id-ID')}</span>
+                `;
+                itemsList.appendChild(div);
+            });
+
+            const qrSec = document.getElementById('rcpQrSection');
+            if (tx.method.includes('QRIS')) {
+                qrSec.classList.remove('hidden');
+                document.getElementById('rcpQrImage').src = companyProfile.qrisUrl;
+            } else {
+                qrSec.classList.add('hidden');
+            }
+
+            document.getElementById('receiptModal').classList.remove('hidden');
+        }
+
+        function downloadReceiptAsImage() {
+            const area = document.getElementById('receiptRenderArea');
+            html2canvas(area).then(canvas => {
+                const link = document.createElement('a');
+                link.download = 'Struk-PosKu.png';
+                link.href = canvas.toDataURL();
+                link.click();
+            });
+        }
+
+        function shareReceiptImage() {
+            const area = document.getElementById('receiptRenderArea');
+            html2canvas(area).then(canvas => {
+                canvas.toBlob(blob => {
+                    const file = new File([blob], 'struk.png', { type: 'image/png' });
+                    if (navigator.share && navigator.canShare({ files: [file] })) {
+                        navigator.share({ files: [file], title: 'Struk Belanja' });
+                    } else {
+                        showToast("Buka pada browser yang mendukung Web Share API", "info");
+                    }
+                });
+            });
+        }
+
+        function initCompanyProfile() {
+            document.getElementById('navCompanyName').innerText = companyProfile.name;
+            document.getElementById('profName').value = companyProfile.name;
+            document.getElementById('profTagline').value = companyProfile.tagline;
+            document.getElementById('profPhone').value = companyProfile.phone;
+            document.getElementById('profAddress').value = companyProfile.address;
+            document.getElementById('profFooter').value = companyProfile.footerMsg;
+            document.getElementById('profLogo').value = companyProfile.logoUrl;
+            document.getElementById('profQrCode').value = companyProfile.qrisUrl;
+
+            document.getElementById('prevHeaderName').innerText = companyProfile.name;
+            document.getElementById('prevHeaderTagline').innerText = companyProfile.tagline;
+            document.getElementById('prevHeaderAddress').innerText = companyProfile.address;
+            document.getElementById('prevHeaderPhone').innerText = companyProfile.phone;
+            document.getElementById('previewQrImage').src = companyProfile.qrisUrl;
+        }
+
+        function saveCompanyProfile(e) {
+            e.preventDefault();
+            companyProfile = {
+                name: document.getElementById('profName').value.trim(),
+                tagline: document.getElementById('profTagline').value.trim(),
+                phone: document.getElementById('profPhone').value.trim(),
+                address: document.getElementById('profAddress').value.trim(),
+                footerMsg: document.getElementById('profFooter').value.trim(),
+                logoUrl: document.getElementById('profLogo').value.trim(),
+                qrisUrl: document.getElementById('profQrCode').value.trim(),
+            };
+            localStorage.setItem('posku_company', JSON.stringify(companyProfile));
+            initCompanyProfile();
+            showToast("Profil Perusahaan Berhasil Disimpan!");
+        }
+
         function openBarcodePrintModal() {
-            const select = document.getElementById('barcodeSelectProduct');
-            select.innerHTML = products.map(p => `<option value="${p.id}">${p.name} (${p.barcode})</option>`).join('');
-
-            const catSelect = document.getElementById('barcodeBulkCategory');
-            const categories = ['Semua', ...new Set(products.map(p => p.category))];
-            catSelect.innerHTML = categories.map(c => `<option value="${c}">${c}</option>`).join('');
-
             document.getElementById('barcodeModal').classList.remove('hidden');
             updateBarcodePreview();
         }
 
         function switchBarcodePrintMode(mode) {
             barcodePrintMode = mode;
-            const btnBulk = document.getElementById('btnBarcodeModeBulk');
-            const btnSingle = document.getElementById('btnBarcodeModeSingle');
-            const singleControls = document.getElementById('barcodeSingleControls');
-            const bulkControls = document.getElementById('barcodeBulkControls');
-
             if (mode === 'bulk') {
-                btnBulk.className = "pb-2 text-xs font-bold border-b-2 border-indigo-600 text-indigo-600 flex items-center space-x-2";
-                btnSingle.className = "pb-2 text-xs font-bold border-b-2 border-transparent text-slate-500 hover:text-slate-800 flex items-center space-x-2";
-                bulkControls.classList.remove('hidden');
-                singleControls.classList.add('hidden');
+                document.getElementById('barcodeBulkControls').classList.remove('hidden');
+                document.getElementById('barcodeSingleControls').classList.add('hidden');
             } else {
-                btnSingle.className = "pb-2 text-xs font-bold border-b-2 border-indigo-600 text-indigo-600 flex items-center space-x-2";
-                btnBulk.className = "pb-2 text-xs font-bold border-b-2 border-transparent text-slate-500 hover:text-slate-800 flex items-center space-x-2";
-                singleControls.classList.remove('hidden');
-                bulkControls.classList.add('hidden');
+                document.getElementById('barcodeSingleControls').classList.remove('hidden');
+                document.getElementById('barcodeBulkControls').classList.add('hidden');
+                populateBarcodeSingleDropdown();
             }
             updateBarcodePreview();
+        }
+
+        function populateBarcodeSingleDropdown() {
+            const select = document.getElementById('barcodeSelectProduct');
+            select.innerHTML = '';
+            products.forEach(p => {
+                const opt = document.createElement('option');
+                opt.value = p.id;
+                opt.innerText = `${p.name} (${p.barcode})`;
+                select.appendChild(opt);
+            });
         }
 
         function updateBarcodePreview() {
             const area = document.getElementById('printableBarcodeArea');
             area.innerHTML = '';
 
-            let labelList = [];
+            let labelCount = 0;
+            let productCount = 0;
 
             if (barcodePrintMode === 'single') {
                 const prodId = document.getElementById('barcodeSelectProduct').value;
@@ -1417,59 +1456,58 @@
                 const product = products.find(p => p.id === prodId);
 
                 if (product) {
+                    productCount = 1;
+                    labelCount = qty;
                     for (let i = 0; i < qty; i++) {
-                        labelList.push({ product, showPrice, showStore: true });
+                        area.appendChild(createBarcodeCardHTML(product, showPrice, true));
                     }
                 }
             } else {
                 const qtyMode = document.getElementById('barcodeBulkQtyMode').value;
-                const categoryFilter = document.getElementById('barcodeBulkCategory').value;
                 const showPrice = document.getElementById('barcodeBulkShowPrice').checked;
                 const showStore = document.getElementById('barcodeBulkShowStore').checked;
 
-                const filteredProducts = products.filter(p => categoryFilter === 'Semua' || p.category === categoryFilter);
-
-                filteredProducts.forEach(p => {
-                    let count = 1;
-                    if (qtyMode === 'sesuai_stok') count = p.stock > 0 ? p.stock : 1;
+                products.forEach(p => {
+                    const count = qtyMode === 'sesuai_stok' ? Math.max(1, p.stock) : 1;
+                    productCount++;
+                    labelCount += count;
                     for (let i = 0; i < count; i++) {
-                        labelList.push({ product: p, showPrice, showStore });
+                        area.appendChild(createBarcodeCardHTML(p, showPrice, showStore));
                     }
                 });
             }
 
-            document.getElementById('barcodeSummaryCount').innerText = `${labelList.length} Label`;
-            document.getElementById('barcodeSummaryProducts').innerText = `${new Set(labelList.map(l => l.product.id)).size} Produk`;
+            document.getElementById('barcodeSummaryCount').innerText = `${labelCount} Label`;
+            document.getElementById('barcodeSummaryProducts').innerText = `${productCount} Produk`;
 
-            labelList.forEach((item, index) => {
-                const card = document.createElement('div');
-                card.className = "border border-slate-300 p-2 rounded-lg text-center bg-white shadow-2xs flex flex-col items-center justify-between min-h-[110px]";
-                
-                const svgId = `barcode-svg-${index}`;
-                card.innerHTML = `
-                    ${item.showStore ? `<span class="text-[9px] font-bold text-slate-800 uppercase tracking-tight line-clamp-1">${companyProfile.name}</span>` : ''}
-                    <span class="text-[10px] font-semibold text-slate-900 line-clamp-1 mt-0.5">${item.product.name}</span>
-                    <svg id="${svgId}" class="w-full max-h-12 my-1"></svg>
-                    ${item.showPrice ? `<span class="text-[10px] font-bold text-indigo-700">Rp ${item.product.price.toLocaleString('id-ID')}</span>` : ''}
-                `;
-                area.appendChild(card);
-
-                try {
-                    JsBarcode(`#${svgId}`, item.product.barcode, {
-                        format: "CODE128",
-                        height: 35,
-                        displayValue: true,
-                        fontSize: 9,
-                        margin: 2
-                    });
-                } catch(e) {}
-            });
+            // Render JsBarcode SVG
+            setTimeout(() => {
+                document.querySelectorAll('.barcode-svg').forEach(svg => {
+                    const code = svg.getAttribute('data-barcode');
+                    if (code) {
+                        JsBarcode(svg, code, {
+                            format: "CODE128",
+                            width: 1.5,
+                            height: 35,
+                            displayValue: true,
+                            fontSize: 10,
+                            margin: 2
+                        });
+                    }
+                });
+            }, 50);
         }
 
-        function updateBarcodeGridStyle() {
-            const area = document.getElementById('printableBarcodeArea');
-            const cols = document.getElementById('barcodeGridCols').value;
-            area.className = `grid ${cols} gap-3 bg-white p-4 rounded-lg min-h-[200px]`;
+        function createBarcodeCardHTML(product, showPrice, showStore) {
+            const div = document.createElement('div');
+            div.className = 'border border-slate-300 p-2 rounded-lg text-center bg-white flex flex-col justify-between items-center';
+            div.innerHTML = `
+                ${showStore ? `<span class="text-[9px] font-bold text-slate-700 uppercase">${companyProfile.name}</span>` : ''}
+                <span class="text-[10px] font-semibold text-slate-800 line-clamp-1">${product.name}</span>
+                <svg class="barcode-svg my-1" data-barcode="${product.barcode}"></svg>
+                ${showPrice ? `<span class="text-[11px] font-extrabold text-slate-900">Rp ${product.price.toLocaleString('id-ID')}</span>` : ''}
+            `;
+            return div;
         }
 
         function printBarcodeLabels() {
@@ -1478,48 +1516,14 @@
 
         function downloadSingleBarcodePNG() {
             const area = document.getElementById('printableBarcodeArea');
-            html2canvas(area, { scale: 2 }).then(canvas => {
+            html2canvas(area).then(canvas => {
                 const link = document.createElement('a');
-                link.download = `Barcode-Labels-${Date.now()}.png`;
-                link.href = canvas.toDataURL('image/png');
+                link.download = 'Barcode-Labels.png';
+                link.href = canvas.toDataURL();
                 link.click();
             });
         }
 
-        // --- RIWAYAT TRANSAKSI ---
-        function renderTransactions() {
-            const container = document.getElementById('transactionList');
-            const totalRevEl = document.getElementById('totalRevenueText');
-
-            const totalRev = transactions.reduce((acc, t) => acc + t.total, 0);
-            totalRevEl.innerText = `Rp ${totalRev.toLocaleString('id-ID')}`;
-
-            if (transactions.length === 0) {
-                container.innerHTML = `<div class="p-8 text-center bg-white rounded-2xl border border-slate-200 text-slate-400 text-xs">Belum ada riwayat transaksi</div>`;
-                return;
-            }
-
-            container.innerHTML = transactions.map(tx => `
-                <div class="bg-white p-4 rounded-2xl border border-slate-200 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
-                    <div>
-                        <div class="flex items-center space-x-2">
-                            <span class="font-bold text-slate-900 text-sm">${tx.id}</span>
-                            <span class="text-[10px] bg-indigo-50 text-indigo-600 font-semibold px-2 py-0.5 rounded-full">${tx.method}</span>
-                        </div>
-                        <p class="text-xs text-slate-400 mt-0.5">${tx.date} • ${tx.items.length} Barang</p>
-                    </div>
-                    <div class="flex items-center justify-between w-full sm:w-auto gap-4">
-                        <span class="font-bold text-indigo-600 text-sm">Rp ${tx.total.toLocaleString('id-ID')}</span>
-                        <button onclick='renderReceipt(${JSON.stringify(tx)})' class="bg-slate-100 hover:bg-slate-200 text-slate-700 px-3 py-1.5 rounded-xl text-xs font-semibold flex items-center space-x-1 transition-all">
-                            <i class="fa-solid fa-receipt"></i>
-                            <span>Struk</span>
-                        </button>
-                    </div>
-                </div>
-            `).join('');
-        }
-
-        // Modal Helper Functions
         function closeModal(id) {
             document.getElementById(id).classList.add('hidden');
         }
